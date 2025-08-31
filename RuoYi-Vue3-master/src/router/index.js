@@ -157,6 +157,19 @@ export const dynamicRoutes = [
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
       }
     ]
+  },
+  {
+    path: '/dmw',
+    component: Layout,
+    permissions: ['dmw:student:list'],
+    children: [
+      {
+        path: 'dashboard',
+        component: () => import('@/views/dmw/dashboard/index'),
+        name: 'DmwDashboard',
+        meta: { title: '数据分析仪表盘', icon: 'chart' }
+      }
+    ]
   }
 ]
 

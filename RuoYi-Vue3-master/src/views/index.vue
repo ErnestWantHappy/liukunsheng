@@ -80,6 +80,48 @@
     </el-row>
 
     <el-divider />
+    
+    <!-- 数据可视化图表区域 -->
+    <el-row :gutter="20" class="charts-section">
+      <el-col :span="24">
+        <el-card>
+          <template v-slot:header>
+            <div class="clearfix">
+              <span>数据可视化分析</span>
+              <el-button style="float: right; margin-top: -8px;" type="primary" size="small" @click="gotoFullDashboard">
+                <el-icon><TrendCharts /></el-icon>
+                查看详细仪表盘
+              </el-button>
+            </div>
+          </template>
+          
+          <!-- 图表展示 -->
+          <el-row :gutter="20">
+            <!-- 六困生类型分布饼图 -->
+            <el-col :span="12">
+              <PieChart
+                :data="hardshipDistribution"
+                title="六困生类型分布"
+                height="350px"
+                :colors="hardshipColors"
+              />
+            </el-col>
+            
+            <!-- 年级分布柱状图 -->
+            <el-col :span="12">
+              <BarChart
+                :xData="gradeDistribution.map(item => item.name)"
+                :series="[{ name: '学生数量', data: gradeDistribution.map(item => item.value) }]"
+                title="各年级六困生分布"
+                xAxisName="年级"
+                yAxisName="学生数量"
+                height="350px"
+              />
+            </el-col>
+          </el-row>
+        </el-card>
+      </el-col>
+    </el-row>
     <el-row :gutter="20">
       <el-col :xs="24" :sm="24" :md="24" :lg="24">
         <el-card class="update-log">
@@ -122,16 +164,118 @@
 </template>
 
 <script setup name="Index">
-import { getDashboardStats } from "@/api/dmw/student";
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { TrendCharts } from '@element-plus/icons-vue'
+import { PieChart, BarChart } from '@/components/Charts'
+import { 
+  getDashboardStats,
+  getHardshipDistribution, 
+  getGradeDistribution
+} from "@/api/dmw/student";
+
+const router = useRouter()
 const stats = ref({});
 
+// 图表数据
+const hardshipDistribution = ref([])
+const gradeDistribution = ref([])
+
+// 六困生类型颜色配置
+const hardshipColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3']
+
+// 获取统计数据
 function getStats() {
   getDashboardStats().then(res => {
     stats.value = res.data;
   });
 }
 
-getStats();
+// 加载图表数据
+const loadChartData = async () => {
+  try {
+    const promises = [
+      getHardshipDistribution({}),
+      getGradeDistribution({})
+    ]
+    
+    const [hardshipRes, gradeRes] = await Promise.all(promises)
+    
+    // 处理六困生类型分布数据
+    if (hardshipRes && hardshipRes.data) {
+      hardshipDistribution.value = hardshipRes.data.map(item => ({
+        name: item.hardshipTypeName || item.name,
+        value: item.studentCount || item.value
+      }))
+    } else {
+      // 如果API未实现，使用模拟数据
+      hardshipDistribution.value = [
+        { name: '特困生', value: 15 },
+        { name: '学困生', value: 23 },
+        { name: '心困生', value: 8 },
+        { name: '德困生', value: 5 },
+        { name: '身困生', value: 12 },
+        { name: '境困生', value: 18 }
+      ]
+    }
+    
+    // 处理年级分布数据
+    if (gradeRes && gradeRes.data) {
+      gradeDistribution.value = gradeRes.data.map(item => ({
+        name: item.gradeName || item.name,
+        value: item.studentCount || item.value
+      }))
+    } else {
+      // 如果API未实现，使用模拟数据
+      gradeDistribution.value = [
+        { name: '一年级', value: 12 },
+        { name: '二年级', value: 8 },
+        { name: '三年级', value: 15 },
+        { name: '四年级', value: 10 },
+        { name: '五年级', value: 18 },
+        { name: '六年级', value: 14 },
+        { name: '七年级', value: 9 },
+        { name: '八年级', value: 11 },
+        { name: '九年级', value: 7 }
+      ]
+    }
+    
+  } catch (error) {
+    console.warn('图表数据API暂未实现，使用模拟数据：', error)
+    // 使用模拟数据
+    hardshipDistribution.value = [
+      { name: '特困生', value: 15 },
+      { name: '学困生', value: 23 },
+      { name: '心困生', value: 8 },
+      { name: '德困生', value: 5 },
+      { name: '身困生', value: 12 },
+      { name: '境困生', value: 18 }
+    ]
+    
+    gradeDistribution.value = [
+      { name: '一年级', value: 12 },
+      { name: '二年级', value: 8 },
+      { name: '三年级', value: 15 },
+      { name: '四年级', value: 10 },
+      { name: '五年级', value: 18 },
+      { name: '六年级', value: 14 },
+      { name: '七年级', value: 9 },
+      { name: '八年级', value: 11 },
+      { name: '九年级', value: 7 }
+    ]
+  }
+}
+
+// 跳转到详细仪表盘
+const gotoFullDashboard = () => {
+  router.push('/dmw/dashboard')
+}
+
+// 初始化
+onMounted(() => {
+  getStats()
+  loadChartData()
+})
 </script>
 
 <style scoped lang="scss">
@@ -191,6 +335,22 @@ getStats();
   .guide-content p {
     line-height: 1.8;
     font-size: 14px;
+  }
+  
+  .charts-section {
+    margin-bottom: 20px;
+    
+    .clearfix {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      
+      span {
+        font-size: 16px;
+        font-weight: bold;
+        color: #303133;
+      }
+    }
   }
 }
 </style>

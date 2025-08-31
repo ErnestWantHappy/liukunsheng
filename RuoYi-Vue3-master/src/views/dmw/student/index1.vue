@@ -498,7 +498,24 @@ const data = reactive({
   },
   rules: {
     studentName: [ { required: true, message: "学生姓名不能为空", trigger: "blur" } ],
-    idCardNo: [ { required: true, message: "身份证号不能为空", trigger: "blur" } ],
+    idCardNo: [ 
+      { required: true, message: "身份证号不能为空", trigger: "blur" },
+      { 
+        pattern: /^[0-9Xx]{18}$/, 
+        message: "身份证号必须为18位，只能包含数字和X", 
+        trigger: "blur" 
+      },
+      {
+        validator: (rule, value, callback) => {
+          if (value && /[\u4e00-\u9fa5]/.test(value)) {
+            callback(new Error('身份证号不能包含中文字符'))
+          } else {
+            callback()
+          }
+        },
+        trigger: "blur"
+      }
+    ],
     deptType: [ { required: true, message: "学部不能为空", trigger: "change" } ],
     gradeId: [ { required: true, message: "年级不能为空", trigger: "change" } ],
     classId: [ { required: true, message: "班级不能为空", trigger: "change" } ],

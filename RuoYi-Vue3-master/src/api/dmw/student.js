@@ -93,3 +93,48 @@ export function getDashboardStats() {
     method: 'get'
   })
 }
+
+// 获取六困生类型分布数据
+export function getHardshipDistribution(query) {
+  return request({
+    url: '/dmw/student/chart/hardship-distribution',
+    method: 'get',
+    params: query
+  })
+}
+
+// 获取年级分布数据
+export function getGradeDistribution(query) {
+  return request({
+    url: '/dmw/student/chart/grade-distribution',
+    method: 'get',
+    params: query
+  })
+}
+
+// 获取状态变更趋势数据
+export function getStatusTrend(query) {
+  return request({
+    url: '/dmw/student/chart/status-trend',
+    method: 'get',
+    params: query
+  })
+}
+
+// 获取约谈记录统计数据
+export function getInterviewStats(query) {
+  return request({
+    url: '/dmw/student/chart/interview-stats',
+    method: 'get',
+    params: query
+  })
+}
+
+// 获取班级困难学生分布数据
+export function getClassHardshipDistribution(query) {
+  return request({
+    url: '/dmw/student/chart/class-hardship',
+    method: 'get',
+    params: query
+  })
+}

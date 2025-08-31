@@ -11,7 +11,7 @@
  Target Server Version : 80039 (8.0.39)
  File Encoding         : 65001
 
- Date: 31/08/2025 14:52:48
+ Date: 31/08/2025 17:49:09
 */
 
 SET NAMES utf8mb4;
@@ -36,18 +36,14 @@ CREATE TABLE `dmw_interview`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '备注',
   PRIMARY KEY (`interview_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 107 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '六困生-约谈记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 112 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '六困生-约谈记录表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of dmw_interview
 -- ----------------------------
-INSERT INTO `dmw_interview` VALUES (100, 22, '2025-07-08 00:00:00', '3', '张三', '记录人', '学术思想', '是', '', '2025-07-19 16:41:08', '', NULL, '是');
-INSERT INTO `dmw_interview` VALUES (101, 102, '2025-07-01 00:00:00', '1', '3', '3', '33', '', '', '2025-07-21 16:33:07', '', NULL, '');
-INSERT INTO `dmw_interview` VALUES (102, 100, '2025-07-10 00:00:00', '2', '提供', '弱覆盖', '认同感', '', '', '2025-07-21 16:40:28', '', NULL, '');
-INSERT INTO `dmw_interview` VALUES (103, 100, '2025-07-19 00:00:00', '2', '共同', '提供', '111', '', '', '2025-07-21 16:40:55', '', NULL, '');
-INSERT INTO `dmw_interview` VALUES (104, 100, '2025-07-08 00:00:00', '2', '人2', '人23', '地产市场的VS', 'http://localhost:8080/profile/upload/2025/07/21/D_20250721171636A001.zip', '', '2025-07-21 17:16:53', '', NULL, '');
-INSERT INTO `dmw_interview` VALUES (105, 100, '2025-07-08 00:00:00', '2', '说', '6', '7', 'http://localhost:8080/profile/upload/2025/07/21/D_20250721173231A001.zip', '', '2025-07-21 17:32:40', '', NULL, '');
-INSERT INTO `dmw_interview` VALUES (106, 100, '2025-07-26 00:00:00', '2', '', '', NULL, 'http://localhost:8080/profile/upload/2025/07/21/D_20250721174120A001.zip', '', '2025-07-21 17:41:23', '', NULL, '');
+INSERT INTO `dmw_interview` VALUES (109, 109, '2025-08-07 00:00:00', '2', 'sx', 'sx', 'fdscvv', 'http://localhost:8080/profile/upload/2025/08/31/郑东旭个人资料_20250831173057A001.zip', '', '2025-08-31 17:30:58', '', NULL, '');
+INSERT INTO `dmw_interview` VALUES (110, 107, '2025-08-06 00:00:00', '2', 'cds', 'cdfsxbv', 'dscfvc', 'http://localhost:8080/profile/upload/2025/08/31/郑东旭个人资料_20250831173108A002.zip', '', '2025-08-31 17:31:09', '', NULL, '');
+INSERT INTO `dmw_interview` VALUES (111, 109, '2025-08-03 00:00:00', '4', 'dcs', 'cdsfv', 'fdvdfv', 'http://localhost:8080/profile/upload/2025/08/31/郑东旭个人资料_20250831173120A003.zip', '', '2025-08-31 17:31:21', '', NULL, '');
 
 -- ----------------------------
 -- Table structure for dmw_status_log
@@ -67,7 +63,7 @@ CREATE TABLE `dmw_status_log`  (
   `create_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '操作人',
   `create_time` datetime NULL DEFAULT NULL COMMENT '操作时间',
   PRIMARY KEY (`log_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 104 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '学生状态变更日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 106 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '学生状态变更日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of dmw_status_log
@@ -76,6 +72,8 @@ INSERT INTO `dmw_status_log` VALUES (100, 104, '李四', '01', '02', '生病', '
 INSERT INTO `dmw_status_log` VALUES (101, 104, '李四', '02', '01', '在读咯', '2025-07-08', NULL, NULL, NULL, 'admin', '2025-07-29 18:45:40');
 INSERT INTO `dmw_status_log` VALUES (102, 105, '学生名301', '01', '03', '休学咯', '2025-07-30', '2025-08-01', NULL, NULL, 'admin', '2025-07-29 18:45:58');
 INSERT INTO `dmw_status_log` VALUES (103, 106, '301学生2', '01', '03', '301休学', '2025-07-29', '2025-07-31', NULL, NULL, 'admin', '2025-07-29 18:51:48');
+INSERT INTO `dmw_status_log` VALUES (104, 107, '2年级学生姓名', '01', '02', 'jbhn', '2025-07-09', '2025-08-14', NULL, NULL, 'admin', '2025-08-31 17:11:55');
+INSERT INTO `dmw_status_log` VALUES (105, 107, '2年级学生姓名', '02', '01', 'yf', '2026-08-31', NULL, NULL, NULL, 'admin', '2025-08-31 17:12:16');
 
 -- ----------------------------
 -- Table structure for dmw_student
@@ -113,7 +111,7 @@ CREATE TABLE `dmw_student`  (
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '备注',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志 (0=存在 2=删除)',
   PRIMARY KEY (`student_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 108 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '六困生-学生信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 110 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '六困生-学生信息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of dmw_student
@@ -123,6 +121,8 @@ INSERT INTO `dmw_student` VALUES (104, '李四', '2', '1', 2, 5, '0', 'N', '1', 
 INSERT INTO `dmw_student` VALUES (105, '学生名301', '302202', '1', 3, 1, '0', 'N', '1', '', '2', '1', '1', '', 'N', '0', '2', NULL, NULL, NULL, '03', '', '0', NULL, '', '2025-07-22 15:54:35', '', NULL, '', '2');
 INSERT INTO `dmw_student` VALUES (106, '301学生2', '3', '1', 3, 1, '0', 'Y', '1', '', '1', '1', '2', '', 'N', '1', '1', NULL, NULL, NULL, '03', '301休学', '0', NULL, '', '2025-07-22 16:10:01', '', '2025-07-30 18:43:30', '', '0');
 INSERT INTO `dmw_student` VALUES (107, '2年级学生姓名', '333', '1', 2, 2, '1', 'Y', '1', '', '1', '1', '1', '', 'N', '1', '2', NULL, NULL, NULL, '01', '', '0', NULL, '', '2025-07-30 17:17:43', 'dmwxinli', '2025-07-30 18:43:38', '', '0');
+INSERT INTO `dmw_student` VALUES (108, 'ewfsdc', '3sd2356132', '1', 1, 2, '0', 'N', '1', '', '2', '2', '3', '', 'N', '2', '1', NULL, NULL, NULL, '01', '', '0', NULL, '', '2025-08-31 17:07:47', '', NULL, '', '2');
+INSERT INTO `dmw_student` VALUES (109, 'dsc', '330552200205368980', '1', 1, 2, '0', 'N', '1', '', '2', '2', '2', '', 'Y', '1', '2', NULL, NULL, NULL, '01', '', '0', NULL, '', '2025-08-31 17:10:38', '', NULL, '', '0');
 
 -- ----------------------------
 -- Table structure for dmw_teacher_class
@@ -752,7 +752,7 @@ CREATE TABLE `sys_logininfor`  (
   PRIMARY KEY (`info_id`) USING BTREE,
   INDEX `idx_sys_logininfor_s`(`status` ASC) USING BTREE,
   INDEX `idx_sys_logininfor_lt`(`login_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 120 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统访问记录' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 127 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统访问记录' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_logininfor
@@ -777,6 +777,13 @@ INSERT INTO `sys_logininfor` VALUES (116, 'admin', '127.0.0.1', '内网IP', 'Chr
 INSERT INTO `sys_logininfor` VALUES (117, 'dmwxinli', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '1', '用户不存在/密码错误', '2025-07-30 18:33:57');
 INSERT INTO `sys_logininfor` VALUES (118, 'dmwxinli', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '1', '用户不存在/密码错误', '2025-07-30 18:34:16');
 INSERT INTO `sys_logininfor` VALUES (119, 'dmwxinli', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-07-30 18:34:23');
+INSERT INTO `sys_logininfor` VALUES (120, 'admin', '127.0.0.1', '内网IP', 'Chrome 12', 'Windows 10', '1', '验证码错误', '2025-08-31 16:01:11');
+INSERT INTO `sys_logininfor` VALUES (121, 'admin', '127.0.0.1', '内网IP', 'Chrome 12', 'Windows 10', '0', '登录成功', '2025-08-31 16:01:15');
+INSERT INTO `sys_logininfor` VALUES (122, '301', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-08-31 16:25:18');
+INSERT INTO `sys_logininfor` VALUES (123, 'psychologist', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '1', '用户不存在/密码错误', '2025-08-31 17:43:05');
+INSERT INTO `sys_logininfor` VALUES (124, 'psychologist', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '1', '用户不存在/密码错误', '2025-08-31 17:43:13');
+INSERT INTO `sys_logininfor` VALUES (125, 'psychologist', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '1', '用户不存在/密码错误', '2025-08-31 17:43:26');
+INSERT INTO `sys_logininfor` VALUES (126, 'dmwxinli', '127.0.0.1', '内网IP', 'Chrome 13', 'Windows 10', '0', '登录成功', '2025-08-31 17:43:57');
 
 -- ----------------------------
 -- Table structure for sys_menu
@@ -804,7 +811,7 @@ CREATE TABLE `sys_menu`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '备注',
   PRIMARY KEY (`menu_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2021 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单权限表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2022 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单权限表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_menu
@@ -915,6 +922,7 @@ INSERT INTO `sys_menu` VALUES (2017, '删除', 2001, 4, '', NULL, NULL, '', 1, 0
 INSERT INTO `sys_menu` VALUES (2018, '导出', 2001, 5, '', NULL, NULL, '', 1, 0, 'F', '0', '0', 'dmw:student:export', '#', 'admin', '2025-07-22 15:53:10', 'admin', '2025-07-22 15:55:10', '');
 INSERT INTO `sys_menu` VALUES (2019, '导入', 2001, 6, '', NULL, NULL, '', 1, 0, 'F', '0', '0', 'dmw:student:import', '#', 'admin', '2025-07-22 15:53:38', '', NULL, '');
 INSERT INTO `sys_menu` VALUES (2020, '历史档案', 2000, 1, 'archive', 'dmw/archive/index', NULL, '', 1, 0, 'C', '0', '0', 'dmw:student:list', '#', 'admin', '2025-07-30 17:15:42', '', NULL, '');
+INSERT INTO `sys_menu` VALUES (2021, '数据分析仪表盘', 2000, 4, 'dashboard', 'dmw/dashboard', NULL, '', 1, 0, 'C', '0', '0', '', '#', 'admin', '2025-08-31 17:41:21', 'admin', '2025-08-31 17:41:57', '');
 
 -- ----------------------------
 -- Table structure for sys_notice
@@ -966,7 +974,7 @@ CREATE TABLE `sys_oper_log`  (
   INDEX `idx_sys_oper_log_bt`(`business_type` ASC) USING BTREE,
   INDEX `idx_sys_oper_log_s`(`status` ASC) USING BTREE,
   INDEX `idx_sys_oper_log_ot`(`oper_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 180 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作日志记录' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 195 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '操作日志记录' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_oper_log
@@ -1051,6 +1059,21 @@ INSERT INTO `sys_oper_log` VALUES (176, '角色管理', 1, 'com.ruoyi.web.contro
 INSERT INTO `sys_oper_log` VALUES (177, '用户管理', 1, 'com.ruoyi.web.controller.system.SysUserController.add()', 'POST', 1, 'admin', '研发部门', '/system/user', '127.0.0.1', '内网IP', '{\"admin\":false,\"createBy\":\"admin\",\"nickName\":\"张洁\",\"params\":{},\"postIds\":[],\"roleIds\":[101],\"status\":\"0\",\"userId\":102,\"userName\":\"dmwxinli\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-30 18:33:30', 74);
 INSERT INTO `sys_oper_log` VALUES (178, '六困生-学生信息', 2, 'com.ruoyi.dmw.controller.DmwStudentController.edit()', 'PUT', 1, 'dmwxinli', NULL, '/dmw/student', '127.0.0.1', '内网IP', '{\"address\":\"\",\"classId\":1,\"createBy\":\"\",\"createTime\":\"2025-07-22 16:10:01\",\"currentStatusReason\":\"301休学\",\"delFlag\":\"0\",\"deptType\":\"1\",\"economicStatus\":\"2\",\"familyAtmosphere\":\"1\",\"familyStructure\":\"1\",\"fosterLeftBehind\":\"N\",\"gender\":\"0\",\"gradeId\":3,\"hardshipType\":\"1\",\"healthStatus\":\"1\",\"idCardNo\":\"3\",\"isOnlyChild\":\"Y\",\"params\":{},\"parentOccupation\":\"\",\"remark\":\"\",\"reportStatus\":\"0\",\"selfHarmHistory\":\"1\",\"studentId\":106,\"studentName\":\"301学生2\",\"studentStatus\":\"03\",\"updateBy\":\"\",\"updateTime\":\"2025-07-30 18:43:29\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-30 18:43:30', 27);
 INSERT INTO `sys_oper_log` VALUES (179, '学生档案恢复', 2, 'com.ruoyi.dmw.controller.DmwStudentController.restore()', 'PUT', 1, 'dmwxinli', NULL, '/dmw/student/restore', '127.0.0.1', '内网IP', '{\"classId\":2,\"currentStatusReason\":\"\",\"delFlag\":\"0\",\"gradeId\":2,\"params\":{},\"studentId\":107,\"studentName\":\"2年级学生姓名\",\"studentStatus\":\"01\",\"updateBy\":\"dmwxinli\",\"updateTime\":\"2025-07-30 18:43:38\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-07-30 18:43:38', 5);
+INSERT INTO `sys_oper_log` VALUES (180, '六困生-学生信息', 1, 'com.ruoyi.dmw.controller.DmwStudentController.add()', 'POST', 1, 'admin', '研发部门', '/dmw/student', '127.0.0.1', '内网IP', '{\"classId\":2,\"createTime\":\"2025-08-31 17:07:47\",\"deptType\":\"1\",\"economicStatus\":\"3\",\"familyAtmosphere\":\"2\",\"familyStructure\":\"2\",\"fosterLeftBehind\":\"N\",\"gender\":\"0\",\"gradeId\":1,\"hardshipType\":\"1\",\"healthStatus\":\"1\",\"idCardNo\":\"3sd2356132\",\"isOnlyChild\":\"N\",\"params\":{},\"selfHarmHistory\":\"2\",\"studentId\":108,\"studentName\":\"ewfsdc\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:07:47', 116);
+INSERT INTO `sys_oper_log` VALUES (181, '六困生-学生信息', 1, 'com.ruoyi.dmw.controller.DmwStudentController.add()', 'POST', 1, 'admin', '研发部门', '/dmw/student', '127.0.0.1', '内网IP', '{\"classId\":2,\"createTime\":\"2025-08-31 17:10:38\",\"deptType\":\"1\",\"economicStatus\":\"2\",\"familyAtmosphere\":\"2\",\"familyStructure\":\"2\",\"fosterLeftBehind\":\"Y\",\"gender\":\"0\",\"gradeId\":1,\"hardshipType\":\"2\",\"healthStatus\":\"1\",\"idCardNo\":\"330552200205368980\",\"isOnlyChild\":\"N\",\"params\":{},\"selfHarmHistory\":\"1\",\"studentId\":109,\"studentName\":\"dsc\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:10:38', 6);
+INSERT INTO `sys_oper_log` VALUES (182, '六困生-约谈记录', 1, 'com.ruoyi.dmw.controller.DmwInterviewController.add()', 'POST', 1, 'admin', '研发部门', '/dmw/interview', '127.0.0.1', '内网IP', '{\"attachmentUrl\":\"http://localhost:8080/profile/upload/2025/08/31/郑东旭个人资料_20250831171104A001.zip\",\"content\":\"jmgbk\",\"createTime\":\"2025-08-31 17:11:05\",\"interviewId\":107,\"interviewTime\":\"2025-08-20\",\"location\":\"3\",\"params\":{},\"participants\":\"iigy\",\"recorder\":\"kjhgj\",\"studentId\":107,\"studentName\":\"2年级学生姓名\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:11:05', 10);
+INSERT INTO `sys_oper_log` VALUES (183, '学生状态变更', 2, 'com.ruoyi.dmw.controller.DmwStudentController.changeStatus()', 'POST', 1, 'admin', '研发部门', '/dmw/student/changeStatus', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"currentStatus\":\"02\",\"endDate\":\"2025-08-14\",\"logId\":104,\"params\":{},\"previousStatus\":\"01\",\"reason\":\"jbhn\",\"startDate\":\"2025-07-09\",\"studentId\":107,\"studentName\":\"2年级学生姓名\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:11:55', 29);
+INSERT INTO `sys_oper_log` VALUES (184, '学生状态变更', 2, 'com.ruoyi.dmw.controller.DmwStudentController.changeStatus()', 'POST', 1, 'admin', '研发部门', '/dmw/student/changeStatus', '127.0.0.1', '内网IP', '{\"createBy\":\"admin\",\"currentStatus\":\"01\",\"logId\":105,\"params\":{},\"previousStatus\":\"02\",\"reason\":\"yf\",\"startDate\":\"2026-08-31\",\"studentId\":107,\"studentName\":\"2年级学生姓名\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:12:16', 9);
+INSERT INTO `sys_oper_log` VALUES (185, '六困生-约谈记录', 1, 'com.ruoyi.dmw.controller.DmwInterviewController.add()', 'POST', 1, 'admin', '研发部门', '/dmw/interview', '127.0.0.1', '内网IP', '{\"attachmentUrl\":\"http://localhost:8080/profile/upload/2025/08/31/郑东旭个人资料_20250831171706A001.zip\",\"content\":\"rge\",\"createTime\":\"2025-08-31 17:17:07\",\"interviewId\":108,\"interviewTime\":\"2025-08-07\",\"location\":\"2\",\"params\":{},\"participants\":\"egr\",\"recorder\":\"erf\",\"studentId\":108,\"studentName\":\"ewfsdc\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:17:07', 101);
+INSERT INTO `sys_oper_log` VALUES (186, '六困生-约谈记录', 3, 'com.ruoyi.dmw.controller.DmwInterviewController.remove()', 'DELETE', 1, 'admin', '研发部门', '/dmw/interview/100,101,102,103,104,105,106,107,108', '127.0.0.1', '内网IP', '[100,101,102,103,104,105,106,107,108]', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:30:32', 16);
+INSERT INTO `sys_oper_log` VALUES (187, '六困生-学生信息', 3, 'com.ruoyi.dmw.controller.DmwStudentController.remove()', 'DELETE', 1, 'admin', '研发部门', '/dmw/student/108', '127.0.0.1', '内网IP', '[108]', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:30:45', 5);
+INSERT INTO `sys_oper_log` VALUES (188, '六困生-约谈记录', 1, 'com.ruoyi.dmw.controller.DmwInterviewController.add()', 'POST', 1, 'admin', '研发部门', '/dmw/interview', '127.0.0.1', '内网IP', '{\"attachmentUrl\":\"http://localhost:8080/profile/upload/2025/08/31/郑东旭个人资料_20250831173057A001.zip\",\"content\":\"fdscvv\",\"createTime\":\"2025-08-31 17:30:57\",\"interviewId\":109,\"interviewTime\":\"2025-08-07\",\"location\":\"2\",\"params\":{},\"participants\":\"sx\",\"recorder\":\"sx\",\"studentId\":109,\"studentName\":\"dsc\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:30:58', 16);
+INSERT INTO `sys_oper_log` VALUES (189, '六困生-约谈记录', 1, 'com.ruoyi.dmw.controller.DmwInterviewController.add()', 'POST', 1, 'admin', '研发部门', '/dmw/interview', '127.0.0.1', '内网IP', '{\"attachmentUrl\":\"http://localhost:8080/profile/upload/2025/08/31/郑东旭个人资料_20250831173108A002.zip\",\"content\":\"dscfvc\",\"createTime\":\"2025-08-31 17:31:09\",\"interviewId\":110,\"interviewTime\":\"2025-08-06\",\"location\":\"2\",\"params\":{},\"participants\":\"cds\",\"recorder\":\"cdfsxbv\",\"studentId\":107,\"studentName\":\"2年级学生姓名\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:31:09', 6);
+INSERT INTO `sys_oper_log` VALUES (190, '六困生-约谈记录', 1, 'com.ruoyi.dmw.controller.DmwInterviewController.add()', 'POST', 1, 'admin', '研发部门', '/dmw/interview', '127.0.0.1', '内网IP', '{\"attachmentUrl\":\"http://localhost:8080/profile/upload/2025/08/31/郑东旭个人资料_20250831173120A003.zip\",\"content\":\"fdvdfv\",\"createTime\":\"2025-08-31 17:31:21\",\"interviewId\":111,\"interviewTime\":\"2025-08-03\",\"location\":\"4\",\"params\":{},\"participants\":\"dcs\",\"recorder\":\"cdsfv\",\"studentId\":109,\"studentName\":\"dsc\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:31:21', 5);
+INSERT INTO `sys_oper_log` VALUES (191, '菜单管理', 1, 'com.ruoyi.web.controller.system.SysMenuController.add()', 'POST', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"dmw/dashboard\",\"createBy\":\"admin\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuName\":\"数据分析仪表盘\",\"menuType\":\"C\",\"orderNum\":4,\"params\":{},\"parentId\":2000,\"path\":\"dmw/dashboard\",\"status\":\"0\",\"visible\":\"0\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:41:21', 103);
+INSERT INTO `sys_oper_log` VALUES (192, '菜单管理', 2, 'com.ruoyi.web.controller.system.SysMenuController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/menu', '127.0.0.1', '内网IP', '{\"children\":[],\"component\":\"dmw/dashboard\",\"createTime\":\"2025-08-31 17:41:21\",\"icon\":\"#\",\"isCache\":\"0\",\"isFrame\":\"1\",\"menuId\":2021,\"menuName\":\"数据分析仪表盘\",\"menuType\":\"C\",\"orderNum\":4,\"params\":{},\"parentId\":2000,\"path\":\"dashboard\",\"perms\":\"\",\"routeName\":\"\",\"status\":\"0\",\"updateBy\":\"admin\",\"visible\":\"0\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:41:57', 8);
+INSERT INTO `sys_oper_log` VALUES (193, '角色管理', 2, 'com.ruoyi.web.controller.system.SysRoleController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/role', '127.0.0.1', '内网IP', '{\"admin\":false,\"createTime\":\"2025-07-22 14:43:20\",\"dataScope\":\"1\",\"delFlag\":\"0\",\"deptCheckStrictly\":true,\"flag\":false,\"menuCheckStrictly\":true,\"menuIds\":[2000,2001,2014,2015,2016,2017,2018,2019,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2021],\"params\":{},\"roleId\":100,\"roleKey\":\"headteacher\",\"roleName\":\"班主任\",\"roleSort\":0,\"status\":\"0\",\"updateBy\":\"admin\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:42:23', 30);
+INSERT INTO `sys_oper_log` VALUES (194, '角色管理', 2, 'com.ruoyi.web.controller.system.SysRoleController.edit()', 'PUT', 1, 'admin', '研发部门', '/system/role', '127.0.0.1', '内网IP', '{\"admin\":false,\"createTime\":\"2025-07-30 18:31:28\",\"dataScope\":\"1\",\"delFlag\":\"0\",\"deptCheckStrictly\":true,\"flag\":false,\"menuCheckStrictly\":true,\"menuIds\":[1,100,1000,1001,1002,1003,1004,1005,1006,2000,2001,2014,2015,2016,2017,2018,2019,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2020,2021],\"params\":{},\"roleId\":101,\"roleKey\":\"psychologist\",\"roleName\":\"心理管理员\",\"roleSort\":2,\"status\":\"0\",\"updateBy\":\"admin\"}', '{\"msg\":\"操作成功\",\"code\":200}', 0, NULL, '2025-08-31 17:42:36', 14);
 
 -- ----------------------------
 -- Table structure for sys_post
@@ -1105,8 +1128,8 @@ CREATE TABLE `sys_role`  (
 -- ----------------------------
 INSERT INTO `sys_role` VALUES (1, '超级管理员', 'admin', 1, '1', 1, 1, '0', '0', 'admin', '2025-07-17 13:18:17', '', NULL, '超级管理员');
 INSERT INTO `sys_role` VALUES (2, '普通角色', 'common', 2, '2', 1, 1, '0', '0', 'admin', '2025-07-17 13:18:17', '', NULL, '普通角色');
-INSERT INTO `sys_role` VALUES (100, '班主任', 'headteacher', 0, '1', 1, 1, '0', '0', 'admin', '2025-07-22 14:43:20', 'admin', '2025-07-22 15:53:49', NULL);
-INSERT INTO `sys_role` VALUES (101, '心理管理员', 'psychologist', 2, '1', 1, 1, '0', '0', 'admin', '2025-07-30 18:31:28', '', NULL, NULL);
+INSERT INTO `sys_role` VALUES (100, '班主任', 'headteacher', 0, '1', 1, 1, '0', '0', 'admin', '2025-07-22 14:43:20', 'admin', '2025-08-31 17:42:23', NULL);
+INSERT INTO `sys_role` VALUES (101, '心理管理员', 'psychologist', 2, '1', 1, 1, '0', '0', 'admin', '2025-07-30 18:31:28', 'admin', '2025-08-31 17:42:36', NULL);
 
 -- ----------------------------
 -- Table structure for sys_role_dept
@@ -1243,6 +1266,7 @@ INSERT INTO `sys_role_menu` VALUES (100, 2016);
 INSERT INTO `sys_role_menu` VALUES (100, 2017);
 INSERT INTO `sys_role_menu` VALUES (100, 2018);
 INSERT INTO `sys_role_menu` VALUES (100, 2019);
+INSERT INTO `sys_role_menu` VALUES (100, 2021);
 INSERT INTO `sys_role_menu` VALUES (101, 1);
 INSERT INTO `sys_role_menu` VALUES (101, 100);
 INSERT INTO `sys_role_menu` VALUES (101, 1000);
@@ -1273,6 +1297,7 @@ INSERT INTO `sys_role_menu` VALUES (101, 2017);
 INSERT INTO `sys_role_menu` VALUES (101, 2018);
 INSERT INTO `sys_role_menu` VALUES (101, 2019);
 INSERT INTO `sys_role_menu` VALUES (101, 2020);
+INSERT INTO `sys_role_menu` VALUES (101, 2021);
 
 -- ----------------------------
 -- Table structure for sys_user
@@ -1305,11 +1330,11 @@ CREATE TABLE `sys_user`  (
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (1, 103, 'admin', '若依', '00', 'ry@163.com', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2025-07-30 17:14:05', '2025-07-17 13:18:17', 'admin', '2025-07-17 13:18:17', '', '2025-07-30 17:14:04', '管理员');
+INSERT INTO `sys_user` VALUES (1, 103, 'admin', '若依', '00', 'ry@163.com', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2025-08-31 16:01:16', '2025-07-17 13:18:17', 'admin', '2025-07-17 13:18:17', '', '2025-08-31 16:01:15', '管理员');
 INSERT INTO `sys_user` VALUES (2, 105, 'ry', '若依', '00', 'ry@qq.com', '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', '2025-07-17 13:18:17', '2025-07-17 13:18:17', 'admin', '2025-07-17 13:18:17', '', NULL, '测试员');
-INSERT INTO `sys_user` VALUES (100, NULL, '301', '301班主任昵称', '00', '', '', '0', '', '$2a$10$YlfokPm5g2ZPakD1J/tqluX/XzkxiQ4FRdDQ3hz3dNobFSRDxyW1e', '0', '0', '127.0.0.1', '2025-07-29 17:20:03', NULL, 'admin', '2025-07-22 14:48:10', '', '2025-07-29 17:20:03', NULL);
+INSERT INTO `sys_user` VALUES (100, NULL, '301', '301班主任昵称', '00', '', '', '0', '', '$2a$10$YlfokPm5g2ZPakD1J/tqluX/XzkxiQ4FRdDQ3hz3dNobFSRDxyW1e', '0', '0', '127.0.0.1', '2025-08-31 16:25:18', NULL, 'admin', '2025-07-22 14:48:10', '', '2025-08-31 16:25:18', NULL);
 INSERT INTO `sys_user` VALUES (101, NULL, '302', '302班主任昵称', '00', '', '', '0', '', '$2a$10$PcCBODz7e.8BSGpn/ElZheelKS.//z6q1T3CqzWsCqFTRVN0Ubv7e', '0', '0', '127.0.0.1', '2025-07-22 15:15:49', NULL, 'admin', '2025-07-22 14:48:35', 'admin', '2025-07-22 15:15:49', NULL);
-INSERT INTO `sys_user` VALUES (102, NULL, 'dmwxinli', '张洁', '00', '', '', '0', '', '$2a$10$HRkzR/DdaQEvGgEOID9psOuCshD.iT5WlyOEQujIDOynNWn9BUwA2', '0', '0', '127.0.0.1', '2025-07-30 18:34:24', NULL, 'admin', '2025-07-30 18:33:30', '', '2025-07-30 18:34:23', NULL);
+INSERT INTO `sys_user` VALUES (102, NULL, 'dmwxinli', '张洁', '00', '', '', '0', '', '$2a$10$HRkzR/DdaQEvGgEOID9psOuCshD.iT5WlyOEQujIDOynNWn9BUwA2', '0', '0', '127.0.0.1', '2025-08-31 17:43:58', NULL, 'admin', '2025-07-30 18:33:30', '', '2025-08-31 17:43:57', NULL);
 
 -- ----------------------------
 -- Table structure for sys_user_post
