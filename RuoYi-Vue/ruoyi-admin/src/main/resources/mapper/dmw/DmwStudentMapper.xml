@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dmw.mapper.DmwStudentMapper">
+
+    <resultMap type="DmwStudent" id="DmwStudentResult">
+        <result property="studentId"    column="student_id"    />
+        <result property="studentName"    column="student_name"    />
+        <result property="idCardNo"    column="id_card_no"    />
+        <result property="deptType"    column="dept_type"    />
+        <result property="gradeId"    column="grade_id"    />
+        <result property="classId"    column="class_id"    />
+        <result property="gender"    column="gender"    />
+        <result property="isOnlyChild"    column="is_only_child"    />
+        <result property="healthStatus"    column="health_status"    />
+        <result property="address"    column="address"    />
+        <result property="familyStructure"    column="family_structure"    />
+        <result property="familyAtmosphere"    column="family_atmosphere"    />
+        <result property="economicStatus"    column="economic_status"    />
+        <result property="parentOccupation"    column="parent_occupation"    />
+        <result property="fosterLeftBehind"    column="foster_left_behind"    />
+        <result property="selfHarmHistory"    column="self_harm_history"    />
+        <result property="hardshipType"    column="hardship_type"    />
+        <result property="studentDetails"    column="student_details"    />
+        <result property="countermeasures"    column="countermeasures"    />
+        <result property="teacherReportInfo"    column="teacher_report_info"    />
+        <result property="studentStatus"    column="student_status"    />
+        <result property="currentStatusReason"    column="current_status_reason"    />
+        <result property="reportStatus"    column="report_status"    />
+        <result property="lastRecordTime"    column="last_record_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectDmwStudentVo">
+        select student_id, student_name, id_card_no, dept_type, grade_id, class_id, gender, is_only_child, health_status, address, family_structure, family_atmosphere, economic_status, parent_occupation, foster_left_behind, self_harm_history, hardship_type, student_details, countermeasures, teacher_report_info, student_status, current_status_reason, report_status, last_record_time, create_by, create_time, update_by, update_time, remark, del_flag from dmw_student
+    </sql>
+
+    <select id="selectDmwStudentList" parameterType="DmwStudent" resultMap="DmwStudentResult">
+        select d.student_id, d.student_name, d.id_card_no, d.dept_type, d.grade_id, d.class_id, d.gender, d.is_only_child, d.health_status, d.address, d.family_structure, d.family_atmosphere, d.economic_status, d.parent_occupation, d.foster_left_behind, d.self_harm_history, d.hardship_type, d.student_details, d.countermeasures, d.teacher_report_info, d.student_status, d.current_status_reason, d.report_status, d.last_record_time, d.create_by, d.create_time, d.update_by, d.update_time, d.remark, d.del_flag
+        from dmw_student d
+        <where>
+            d.del_flag = '0'
+            <!-- 【核心修正】只查询在读状态的学生 -->
+            AND d.student_status IN ('01', '02', '03')
+            <if test="studentName != null  and studentName != ''"> and d.student_name like concat('%', #{studentName}, '%')</if>
+            <if test="hardshipType != null  and hardshipType != ''"> and d.hardship_type = #{hardshipType}</if>
+            <if test="deptType != null  and deptType != ''"> and d.dept_type = #{deptType}</if>
+            <if test="gradeId != null "> and d.grade_id = #{gradeId}</if>
+            <if test="classId != null "> and d.class_id = #{classId}</if>
+            <if test="gender != null  and gender != ''"> and d.gender = #{gender}</if>
+            <if test="studentStatus != null and studentStatus != ''"> and d.student_status = #{studentStatus}</if>
+
+            <if test="params.isDataScope == true">
+                AND d.class_id IN (SELECT tc.class_id FROM dmw_teacher_class tc WHERE tc.user_id = #{params.userId})
+            </if>
+        </where>
+    </select>
+
+    <select id="selectArchivedStudentList" parameterType="DmwStudent" resultMap="DmwStudentResult">
+        <include refid="selectDmwStudentVo"/>
+        <where>
+            del_flag = '2' OR student_status IN ('04', '05')
+            <if test="studentName != null  and studentName != ''"> and student_name like concat('%', #{studentName}, '%')</if>
+            <if test="deptType != null  and deptType != ''"> and dept_type = #{deptType}</if>
+            <if test="gradeId != null "> and grade_id = #{gradeId}</if>
+            <if test="classId != null "> and class_id = #{classId}</if>
+        </where>
+    </select>
+
+    <select id="selectDmwStudentByStudentId" parameterType="Long" resultMap="DmwStudentResult">
+        <include refid="selectDmwStudentVo"/>
+        where student_id = #{studentId}
+    </select>
+
+    <insert id="insertDmwStudent" parameterType="DmwStudent" useGeneratedKeys="true" keyProperty="studentId">
+        insert into dmw_student
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="studentName != null and studentName != ''">student_name,</if>
+            <if test="idCardNo != null and idCardNo != ''">id_card_no,</if>
+            <if test="deptType != null and deptType != ''">dept_type,</if>
+            <if test="gradeId != null">grade_id,</if>
+            <if test="classId != null">class_id,</if>
+            <if test="gender != null and gender != ''">gender,</if>
+            <if test="isOnlyChild != null and isOnlyChild != ''">is_only_child,</if>
+            <if test="healthStatus != null and healthStatus != ''">health_status,</if>
+            <if test="address != null and address != ''">address,</if>
+            <if test="familyStructure != null and familyStructure != ''">family_structure,</if>
+            <if test="familyAtmosphere != null and familyAtmosphere != ''">family_atmosphere,</if>
+            <if test="economicStatus != null and economicStatus != ''">economic_status,</if>
+            <if test="parentOccupation != null and parentOccupation != ''">parent_occupation,</if>
+            <if test="fosterLeftBehind != null and fosterLeftBehind != ''">foster_left_behind,</if>
+            <if test="selfHarmHistory != null and selfHarmHistory != ''">self_harm_history,</if>
+            <if test="hardshipType != null and hardshipType != ''">hardship_type,</if>
+            <if test="studentDetails != null and studentDetails != ''">student_details,</if>
+            <if test="countermeasures != null and countermeasures != ''">countermeasures,</if>
+            <if test="teacherReportInfo != null and teacherReportInfo != ''">teacher_report_info,</if>
+            <if test="studentStatus != null and studentStatus != ''">student_status,</if>
+            <if test="currentStatusReason != null and currentStatusReason != ''">current_status_reason,</if>
+            <if test="reportStatus != null and reportStatus != ''">report_status,</if>
+            <if test="lastRecordTime != null">last_record_time,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null and updateBy != ''">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="studentName != null and studentName != ''">#{studentName},</if>
+            <if test="idCardNo != null and idCardNo != ''">#{idCardNo},</if>
+            <if test="deptType != null and deptType != ''">#{deptType},</if>
+            <if test="gradeId != null">#{gradeId},</if>
+            <if test="classId != null">#{classId},</if>
+            <if test="gender != null and gender != ''">#{gender},</if>
+            <if test="isOnlyChild != null and isOnlyChild != ''">#{isOnlyChild},</if>
+            <if test="healthStatus != null and healthStatus != ''">#{healthStatus},</if>
+            <if test="address != null and address != ''">#{address},</if>
+            <if test="familyStructure != null and familyStructure != ''">#{familyStructure},</if>
+            <if test="familyAtmosphere != null and familyAtmosphere != ''">#{familyAtmosphere},</if>
+            <if test="economicStatus != null and economicStatus != ''">#{economicStatus},</if>
+            <if test="parentOccupation != null and parentOccupation != ''">#{parentOccupation},</if>
+            <if test="fosterLeftBehind != null and fosterLeftBehind != ''">#{fosterLeftBehind},</if>
+            <if test="selfHarmHistory != null and selfHarmHistory != ''">#{selfHarmHistory},</if>
+            <if test="hardshipType != null and hardshipType != ''">#{hardshipType},</if>
+            <if test="studentDetails != null and studentDetails != ''">#{studentDetails},</if>
+            <if test="countermeasures != null and countermeasures != ''">#{countermeasures},</if>
+            <if test="teacherReportInfo != null and teacherReportInfo != ''">#{teacherReportInfo},</if>
+            <if test="studentStatus != null and studentStatus != ''">#{studentStatus},</if>
+            <if test="currentStatusReason != null and currentStatusReason != ''">#{currentStatusReason},</if>
+            <if test="reportStatus != null and reportStatus != ''">#{reportStatus},</if>
+            <if test="lastRecordTime != null">#{lastRecordTime},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateDmwStudent" parameterType="DmwStudent">
+        update dmw_student
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="studentName != null and studentName != ''">student_name = #{studentName},</if>
+            <if test="idCardNo != null and idCardNo != ''">id_card_no = #{idCardNo},</if>
+            <if test="deptType != null and deptType != ''">dept_type = #{deptType},</if>
+            <if test="gradeId != null">grade_id = #{gradeId},</if>
+            <if test="classId != null">class_id = #{classId},</if>
+            <if test="gender != null and gender != ''">gender = #{gender},</if>
+            <if test="isOnlyChild != null and isOnlyChild != ''">is_only_child = #{isOnlyChild},</if>
+            <if test="healthStatus != null and healthStatus != ''">health_status = #{healthStatus},</if>
+            <if test="address != null and address != ''">address = #{address},</if>
+            <if test="familyStructure != null and familyStructure != ''">family_structure = #{familyStructure},</if>
+            <if test="familyAtmosphere != null and familyAtmosphere != ''">family_atmosphere = #{familyAtmosphere},</if>
+            <if test="economicStatus != null and economicStatus != ''">economic_status = #{economicStatus},</if>
+            <if test="parentOccupation != null and parentOccupation != ''">parent_occupation = #{parentOccupation},</if>
+            <if test="fosterLeftBehind != null and fosterLeftBehind != ''">foster_left_behind = #{fosterLeftBehind},</if>
+            <if test="selfHarmHistory != null and selfHarmHistory != ''">self_harm_history = #{selfHarmHistory},</if>
+            <if test="hardshipType != null and hardshipType != ''">hardship_type = #{hardshipType},</if>
+            <if test="studentDetails != null and studentDetails != ''">student_details = #{studentDetails},</if>
+            <if test="countermeasures != null and countermeasures != ''">countermeasures = #{countermeasures},</if>
+            <if test="teacherReportInfo != null and teacherReportInfo != ''">teacher_report_info = #{teacherReportInfo},</if>
+            <if test="studentStatus != null and studentStatus != ''">student_status = #{studentStatus},</if>
+            <if test="currentStatusReason != null">current_status_reason = #{currentStatusReason},</if>
+            <if test="reportStatus != null and reportStatus != ''">report_status = #{reportStatus},</if>
+            <if test="lastRecordTime != null">last_record_time = #{lastRecordTime},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+            <!-- 【核心修正】在更新时，也要更新 del_flag 字段 -->
+            <if test="delFlag != null and delFlag != ''">del_flag = #{delFlag},</if>
+        </trim>
+        where student_id = #{studentId}
+    </update>
+
+    <delete id="deleteDmwStudentByStudentId" parameterType="Long">
+        update dmw_student set del_flag = '2' where student_id = #{studentId}
+    </delete>
+
+    <delete id="deleteDmwStudentByStudentIds" parameterType="String">
+        update dmw_student set del_flag = '2' where student_id in
+        <foreach item="studentId" collection="array" open="(" separator="," close=")">
+            #{studentId}
+        </foreach>
+    </delete>
+
+    <update id="graduateStudents">
+        update dmw_student
+        set student_status = '04'
+        where del_flag = '0'
+          and student_status = '01'
+          and (grade_id = 6 or grade_id = 9)
+    </update>
+
+    <update id="upgradeOtherStudents">
+        update dmw_student
+        set grade_id = grade_id + 1
+        where del_flag = '0'
+          and student_status = '01'
+          and grade_id in (1, 2, 3, 4, 5, 7, 8)
+    </update>
+
+    <select id="getDashboardStatistics" resultType="java.util.Map">
+        SELECT
+            COUNT(*) AS totalStudents,
+            SUM(CASE WHEN dept_type = '1' THEN 1 ELSE 0 END) AS primarySchoolTotal,
+            SUM(CASE WHEN dept_type = '2' THEN 1 ELSE 0 END) AS middleSchoolTotal,
+            SUM(CASE WHEN hardship_type = '1' THEN 1 ELSE 0 END) AS type1Total,
+            SUM(CASE WHEN hardship_type = '2' THEN 1 ELSE 0 END) AS type2Total,
+            SUM(CASE WHEN hardship_type = '3' THEN 1 ELSE 0 END) AS type3Total,
+            SUM(CASE WHEN hardship_type = '4' THEN 1 ELSE 0 END) AS type4Total,
+            SUM(CASE WHEN hardship_type = '5' THEN 1 ELSE 0 END) AS type5Total,
+            SUM(CASE WHEN hardship_type = '6' THEN 1 ELSE 0 END) AS type6Total,
+            SUM(CASE WHEN student_status = '02' THEN 1 ELSE 0 END) AS longLeaveTotal,
+            SUM(CASE WHEN student_status = '03' THEN 1 ELSE 0 END) AS suspensionTotal
+        FROM
+            dmw_student
+        WHERE
+            del_flag = '0' AND student_status IN ('01', '02', '03')
+    </select>
+
+    <!-- 六困生类型分布统计 -->
+    <select id="getHardshipDistribution" resultType="java.util.Map">
+        SELECT 
+            CASE hardship_type
+                WHEN '1' THEN '特困生'
+                WHEN '2' THEN '学困生'
+                WHEN '3' THEN '心困生'
+                WHEN '4' THEN '德困生'
+                WHEN '5' THEN '身困生'
+                WHEN '6' THEN '境困生'
+                ELSE '未知'
+            END AS name,
+            COUNT(*) AS value,
+            hardship_type AS code
+        FROM dmw_student 
+        WHERE del_flag = '0' AND student_status IN ('01', '02', '03')
+            AND hardship_type IS NOT NULL
+        GROUP BY hardship_type
+        ORDER BY hardship_type
+    </select>
+
+    <!-- 年级分布统计 -->
+    <select id="getGradeDistribution" resultType="java.util.Map">
+        SELECT 
+            CONCAT(grade_id, '年级') AS name,
+            COUNT(*) AS value,
+            grade_id AS gradeId,
+            SUM(CASE WHEN dept_type = '1' THEN 1 ELSE 0 END) AS primaryCount,
+            SUM(CASE WHEN dept_type = '2' THEN 1 ELSE 0 END) AS middleCount
+        FROM dmw_student 
+        WHERE del_flag = '0' AND student_status IN ('01', '02', '03')
+            AND grade_id IS NOT NULL
+        GROUP BY grade_id
+        ORDER BY grade_id
+    </select>
+
+    <!-- 学生状态变更趋势统计 -->
+    <select id="getStatusTrend" resultType="java.util.Map">
+        SELECT 
+            DATE_FORMAT(create_time, '%Y-%m') AS month,
+            COUNT(*) AS totalChanges,
+            SUM(CASE WHEN current_status = '01' THEN 1 ELSE 0 END) AS toNormal,
+            SUM(CASE WHEN current_status = '02' THEN 1 ELSE 0 END) AS toLongLeave,
+            SUM(CASE WHEN current_status = '03' THEN 1 ELSE 0 END) AS toSuspension,
+            SUM(CASE WHEN current_status = '04' THEN 1 ELSE 0 END) AS toGraduation
+        FROM dmw_status_log 
+        WHERE create_time >= DATE_SUB(NOW(), INTERVAL #{months} MONTH)
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m')
+        ORDER BY month DESC
+        LIMIT #{months}
+    </select>
+
+    <!-- 约谈记录统计 - 按困难类型分组 -->
+    <select id="getInterviewStats" resultType="java.util.Map">
+        SELECT 
+            CASE s.hardship_type
+                WHEN '1' THEN '特困生'
+                WHEN '2' THEN '学困生'
+                WHEN '3' THEN '心困生'
+                WHEN '4' THEN '德困生'
+                WHEN '5' THEN '身困生'
+                WHEN '6' THEN '境困生'
+                ELSE '未知'
+            END AS name,
+            COUNT(i.interview_id) AS value,
+            s.hardship_type AS code
+        FROM dmw_interview i
+        INNER JOIN dmw_student s ON i.student_id = s.student_id
+        WHERE i.interview_time >= DATE_SUB(NOW(), INTERVAL #{months} MONTH)
+            AND s.del_flag = '0'
+            AND s.hardship_type IS NOT NULL
+        GROUP BY s.hardship_type
+        ORDER BY s.hardship_type
+    </select>
+
+    <!-- 班级困雾学生分布统计 -->
+    <select id="getClassHardshipDistribution" resultType="java.util.Map">
+        SELECT 
+            CONCAT(grade_id, '年级', class_id, '班') AS className,
+            grade_id,
+            class_id,
+            COUNT(*) AS totalStudents,
+            SUM(CASE WHEN hardship_type = '1' THEN 1 ELSE 0 END) AS type1Count,
+            SUM(CASE WHEN hardship_type = '2' THEN 1 ELSE 0 END) AS type2Count,
+            SUM(CASE WHEN hardship_type = '3' THEN 1 ELSE 0 END) AS type3Count,
+            SUM(CASE WHEN hardship_type = '4' THEN 1 ELSE 0 END) AS type4Count,
+            SUM(CASE WHEN hardship_type = '5' THEN 1 ELSE 0 END) AS type5Count,
+            SUM(CASE WHEN hardship_type = '6' THEN 1 ELSE 0 END) AS type6Count
+        FROM dmw_student 
+        WHERE del_flag = '0' AND student_status IN ('01', '02', '03')
+            AND grade_id IS NOT NULL AND class_id IS NOT NULL
+        GROUP BY grade_id, class_id
+        ORDER BY grade_id, class_id
+    </select>
+</mapper>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dmw.mapper.DmwTeacherClassMapper">
+
+    <resultMap type="DmwTeacherClass" id="DmwTeacherClassResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="gradeId"    column="grade_id"    />
+        <result property="classId"    column="class_id"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <!-- 【新增】关联查询，将查到的用户信息映射到 user 对象中 -->
+        <association property="user"    javaType="SysUser">
+            <result property="nickName" column="nick_name"/>
+        </association>
+    </resultMap>
+
+    <!-- 【修改】使用 left join 关联 sys_user 表 -->
+    <sql id="selectDmwTeacherClassVo">
+        select dtc.id, dtc.user_id, dtc.grade_id, dtc.class_id, dtc.create_by, dtc.create_time, dtc.update_by, dtc.update_time, dtc.remark, u.nick_name
+        from dmw_teacher_class dtc
+                 left join sys_user u on dtc.user_id = u.user_id
+    </sql>
+
+    <select id="selectDmwTeacherClassList" parameterType="DmwTeacherClass" resultMap="DmwTeacherClassResult">
+        <include refid="selectDmwTeacherClassVo"/>
+        <where>
+            <!-- 【修改】为查询字段加上表别名 -->
+            <if test="userId != null "> and dtc.user_id = #{userId}</if>
+            <if test="gradeId != null "> and dtc.grade_id = #{gradeId}</if>
+            <if test="classId != null "> and dtc.class_id = #{classId}</if>
+        </where>
+    </select>
+
+    <select id="selectDmwTeacherClassById" parameterType="Long" resultMap="DmwTeacherClassResult">
+        <include refid="selectDmwTeacherClassVo"/>
+        where dtc.id = #{id}
+    </select>
+
+    <!-- 以下 insert, update, delete 部分保持不变 -->
+    <insert id="insertDmwTeacherClass" parameterType="DmwTeacherClass" useGeneratedKeys="true" keyProperty="id">
+        insert into dmw_teacher_class
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="gradeId != null">grade_id,</if>
+            <if test="classId != null">class_id,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="gradeId != null">#{gradeId},</if>
+            <if test="classId != null">#{classId},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateDmwTeacherClass" parameterType="DmwTeacherClass">
+        update dmw_teacher_class
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="gradeId != null">grade_id = #{gradeId},</if>
+            <if test="classId != null">class_id = #{classId},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteDmwTeacherClassById" parameterType="Long">
+        delete from dmw_teacher_class where id = #{id}
+    </delete>
+
+    <delete id="deleteDmwTeacherClassByIds" parameterType="String">
+        delete from dmw_teacher_class where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
