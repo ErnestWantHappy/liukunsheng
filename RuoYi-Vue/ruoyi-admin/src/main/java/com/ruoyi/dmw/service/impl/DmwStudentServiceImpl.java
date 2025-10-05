@@ -1,11 +1,15 @@
 package com.ruoyi.dmw.service.impl;
 
+import java.util.Date;
 import java.util.List;
-import java.util.Map; // 【新增】导入 Map
+import java.util.Map;
+import java.util.Objects;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.dmw.domain.DmwStatusLog;
+import com.ruoyi.dmw.domain.DmwStudentLog;
 import com.ruoyi.dmw.service.IDmwStatusLogService;
+import com.ruoyi.dmw.service.IDmwStudentLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.dmw.mapper.DmwStudentMapper;
@@ -28,6 +32,9 @@ public class DmwStudentServiceImpl implements IDmwStudentService
 
     @Autowired
     private IDmwStatusLogService dmwStatusLogService;
+
+    @Autowired
+    private IDmwStudentLogService dmwStudentLogService;
 
     @Override
     public DmwStudent selectDmwStudentByStudentId(Long studentId)
@@ -54,15 +61,34 @@ public class DmwStudentServiceImpl implements IDmwStudentService
     @Override
     public int insertDmwStudent(DmwStudent dmwStudent)
     {
-        dmwStudent.setCreateTime(DateUtils.getNowDate());
+        Date now = DateUtils.getNowDate();
+        String username = SecurityUtils.getUsername();
+        dmwStudent.setCreateBy(username);
+        dmwStudent.setCreateTime(now);
+        dmwStudent.setUpdateBy(username);
+        dmwStudent.setUpdateTime(now);
         return dmwStudentMapper.insertDmwStudent(dmwStudent);
     }
 
     @Override
     public int updateDmwStudent(DmwStudent dmwStudent)
     {
-        dmwStudent.setUpdateTime(DateUtils.getNowDate());
-        return dmwStudentMapper.updateDmwStudent(dmwStudent);
+        if (dmwStudent.getStudentId() == null)
+        {
+            return 0;
+        }
+        DmwStudent before = dmwStudentMapper.selectDmwStudentByStudentId(dmwStudent.getStudentId());
+        Date now = DateUtils.getNowDate();
+        String username = SecurityUtils.getUsername();
+        dmwStudent.setUpdateBy(username);
+        dmwStudent.setUpdateTime(now);
+        int rows = dmwStudentMapper.updateDmwStudent(dmwStudent);
+        if (rows > 0 && before != null)
+        {
+            DmwStudent after = dmwStudentMapper.selectDmwStudentByStudentId(dmwStudent.getStudentId());
+            recordStudentChange(before, after, username, now);
+        }
+        return rows;
     }
 
     @Override
@@ -90,11 +116,19 @@ public class DmwStudentServiceImpl implements IDmwStudentService
         } else {
             studentUpdate.setCurrentStatusReason(statusLog.getReason());
         }
-        dmwStudentMapper.updateDmwStudent(studentUpdate);
+        Date now = DateUtils.getNowDate();
+        String username = SecurityUtils.getUsername();
+        studentUpdate.setUpdateTime(now);
+        studentUpdate.setUpdateBy(username);
+        int rows = dmwStudentMapper.updateDmwStudent(studentUpdate);
 
         statusLog.setStudentName(student.getStudentName());
         statusLog.setPreviousStatus(student.getStudentStatus());
-        statusLog.setCreateBy(SecurityUtils.getUsername());
+        statusLog.setCreateBy(username);
+        if (rows > 0)
+        {
+            recordStudentChange(student.getStudentId(), "student_status", student.getStudentStatus(), statusLog.getCurrentStatus(), username, now);
+        }
         return dmwStatusLogService.insertDmwStatusLog(statusLog);
     }
 
@@ -124,13 +158,44 @@ public class DmwStudentServiceImpl implements IDmwStudentService
         return dmwStudentMapper.updateDmwStudent(dmwStudent);
     }
 
+    private void recordStudentChange(DmwStudent before, DmwStudent after, String operator, Date operateTime)
+    {
+        if (before == null || after == null)
+        {
+            return;
+        }
+        Long studentId = before.getStudentId() != null ? before.getStudentId() : after.getStudentId();
+        if (studentId == null)
+        {
+            return;
+        }
+        recordStudentChange(studentId, "hardship_type", before.getHardshipType(), after.getHardshipType(), operator, operateTime);
+        recordStudentChange(studentId, "student_status", before.getStudentStatus(), after.getStudentStatus(), operator, operateTime);
+    }
+
+    private void recordStudentChange(Long studentId, String field, String previous, String current, String operator, Date operateTime)
+    {
+        if (Objects.equals(previous, current))
+        {
+            return;
+        }
+        DmwStudentLog log = new DmwStudentLog();
+        log.setStudentId(studentId);
+        log.setChangeField(field);
+        log.setPreviousValue(previous == null ? "" : previous);
+        log.setCurrentValue(current == null ? "" : current);
+        log.setCreateBy(operator);
+        log.setCreateTime(operateTime);
+        dmwStudentLogService.insertStudentLog(log);
+    }
+
     /**
      * 【新增】获取首页仪表盘统计数据
      */
     @Override
-    public Map<String, Object> getDashboardStatistics()
+    public Map<String, Object> getDashboardStatistics(String deptType, Integer gradeId, String hardshipType)
     {
-        return dmwStudentMapper.getDashboardStatistics();
+        return dmwStudentMapper.getDashboardStatistics(deptType, gradeId, hardshipType);
     }
 
     /**
@@ -176,5 +241,17 @@ public class DmwStudentServiceImpl implements IDmwStudentService
     public List<Map<String, Object>> getClassHardshipDistribution()
     {
         return dmwStudentMapper.getClassHardshipDistribution();
+    }
+
+    @Override
+    public List<Map<String, Object>> getHardshipHierarchyStats(String deptType, Integer gradeId, String hardshipType)
+    {
+        return dmwStudentMapper.getHardshipHierarchyStats(deptType, gradeId, hardshipType);
+    }
+
+    @Override
+    public List<DmwStudentLog> getStudentLogs(Long studentId)
+    {
+        return dmwStudentLogService.selectLogsByStudentId(studentId);
     }
 }

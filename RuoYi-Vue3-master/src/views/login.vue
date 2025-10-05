@@ -77,8 +77,8 @@ const router = useRouter()
 const { proxy } = getCurrentInstance()
 
 const loginForm = ref({
-  username: "admin",
-  password: "admin123",
+  username: "",
+  password: "",
   rememberMe: false,
   code: "",
   uuid: ""
@@ -152,10 +152,23 @@ function getCookie() {
   const username = Cookies.get("username")
   const password = Cookies.get("password")
   const rememberMe = Cookies.get("rememberMe")
+
+  let decryptedPassword = ""
+  if (password && password !== "undefined") {
+    try {
+      decryptedPassword = decrypt(password)
+    } catch (e) {
+      decryptedPassword = ""
+    }
+  }
+
+  const parsedRemember = rememberMe === undefined ? false : rememberMe === "true" || rememberMe === true
+
   loginForm.value = {
-    username: username === undefined ? loginForm.value.username : username,
-    password: password === undefined ? loginForm.value.password : decrypt(password),
-    rememberMe: rememberMe === undefined ? false : Boolean(rememberMe)
+    ...loginForm.value,
+    username: username === undefined ? "" : username,
+    password: decryptedPassword,
+    rememberMe: parsedRemember
   }
 }
 

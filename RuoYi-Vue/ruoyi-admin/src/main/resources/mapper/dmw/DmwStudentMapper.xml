@@ -41,6 +41,19 @@
         select student_id, student_name, id_card_no, dept_type, grade_id, class_id, gender, is_only_child, health_status, address, family_structure, family_atmosphere, economic_status, parent_occupation, foster_left_behind, self_harm_history, hardship_type, student_details, countermeasures, teacher_report_info, student_status, current_status_reason, report_status, last_record_time, create_by, create_time, update_by, update_time, remark, del_flag from dmw_student
     </sql>
 
+    <sql id="ActiveStudentConditions">
+        del_flag = '0'
+        AND student_status IN ('01', '02', '03')
+        <if test="deptType != null and deptType != ''">
+            AND dept_type = #{deptType}
+        </if>
+        <if test="gradeId != null">
+            AND grade_id = #{gradeId}
+        </if>
+        <if test="hardshipType != null and hardshipType != ''">
+            AND hardship_type = #{hardshipType}
+        </if>
+    </sql>
     <select id="selectDmwStudentList" parameterType="DmwStudent" resultMap="DmwStudentResult">
         select d.student_id, d.student_name, d.id_card_no, d.dept_type, d.grade_id, d.class_id, d.gender, d.is_only_child, d.health_status, d.address, d.family_structure, d.family_atmosphere, d.economic_status, d.parent_occupation, d.foster_left_behind, d.self_harm_history, d.hardship_type, d.student_details, d.countermeasures, d.teacher_report_info, d.student_status, d.current_status_reason, d.report_status, d.last_record_time, d.create_by, d.create_time, d.update_by, d.update_time, d.remark, d.del_flag
         from dmw_student d
@@ -57,7 +70,13 @@
             <if test="studentStatus != null and studentStatus != ''"> and d.student_status = #{studentStatus}</if>
 
             <if test="params.isDataScope == true">
-                AND d.class_id IN (SELECT tc.class_id FROM dmw_teacher_class tc WHERE tc.user_id = #{params.userId})
+                AND EXISTS (
+                    SELECT 1
+                    FROM dmw_teacher_class tc
+                    WHERE tc.user_id = #{params.userId}
+                      AND tc.grade_id = d.grade_id
+                      AND tc.class_id = d.class_id
+                )
             </if>
         </where>
     </select>
@@ -319,4 +338,92 @@
         GROUP BY grade_id, class_id
         ORDER BY grade_id, class_id
     </select>
+    <select id="getHardshipHierarchyStats" resultType="java.util.Map">
+        SELECT
+            level,
+            nodeName,
+            deptType,
+            gradeId,
+            totalCount,
+            type1Count,
+            type2Count,
+            type3Count,
+            type4Count,
+            type5Count,
+            type6Count
+        FROM
+        (
+            SELECT
+                'school' AS level,
+                '全校学生' AS nodeName,
+                NULL AS deptType,
+                NULL AS gradeId,
+                COUNT(*) AS totalCount,
+                SUM(CASE WHEN hardship_type = '1' THEN 1 ELSE 0 END) AS type1Count,
+                SUM(CASE WHEN hardship_type = '2' THEN 1 ELSE 0 END) AS type2Count,
+                SUM(CASE WHEN hardship_type = '3' THEN 1 ELSE 0 END) AS type3Count,
+                SUM(CASE WHEN hardship_type = '4' THEN 1 ELSE 0 END) AS type4Count,
+                SUM(CASE WHEN hardship_type = '5' THEN 1 ELSE 0 END) AS type5Count,
+                SUM(CASE WHEN hardship_type = '6' THEN 1 ELSE 0 END) AS type6Count
+            FROM dmw_student
+            WHERE
+                <include refid="ActiveStudentConditions"/>
+        UNION ALL
+            SELECT
+                'dept' AS level,
+                CASE dept_type
+                    WHEN '1' THEN '小学部'
+                    WHEN '2' THEN '初中部'
+                    ELSE '未分配学部'
+                END AS nodeName,
+                dept_type AS deptType,
+                NULL AS gradeId,
+                COUNT(*) AS totalCount,
+                SUM(CASE WHEN hardship_type = '1' THEN 1 ELSE 0 END) AS type1Count,
+                SUM(CASE WHEN hardship_type = '2' THEN 1 ELSE 0 END) AS type2Count,
+                SUM(CASE WHEN hardship_type = '3' THEN 1 ELSE 0 END) AS type3Count,
+                SUM(CASE WHEN hardship_type = '4' THEN 1 ELSE 0 END) AS type4Count,
+                SUM(CASE WHEN hardship_type = '5' THEN 1 ELSE 0 END) AS type5Count,
+                SUM(CASE WHEN hardship_type = '6' THEN 1 ELSE 0 END) AS type6Count
+            FROM dmw_student
+            WHERE
+                <include refid="ActiveStudentConditions"/>
+            GROUP BY dept_type
+        UNION ALL
+            SELECT
+                'grade' AS level,
+                CONCAT(grade_id, '年级') AS nodeName,
+                dept_type AS deptType,
+                grade_id AS gradeId,
+                COUNT(*) AS totalCount,
+                SUM(CASE WHEN hardship_type = '1' THEN 1 ELSE 0 END) AS type1Count,
+                SUM(CASE WHEN hardship_type = '2' THEN 1 ELSE 0 END) AS type2Count,
+                SUM(CASE WHEN hardship_type = '3' THEN 1 ELSE 0 END) AS type3Count,
+                SUM(CASE WHEN hardship_type = '4' THEN 1 ELSE 0 END) AS type4Count,
+                SUM(CASE WHEN hardship_type = '5' THEN 1 ELSE 0 END) AS type5Count,
+                SUM(CASE WHEN hardship_type = '6' THEN 1 ELSE 0 END) AS type6Count
+            FROM dmw_student
+            WHERE
+                <include refid="ActiveStudentConditions"/>
+                AND grade_id IS NOT NULL
+            GROUP BY dept_type, grade_id
+        ) stats
+        ORDER BY CASE level
+                    WHEN 'school' THEN 1
+                    WHEN 'dept' THEN 2
+                    WHEN 'grade' THEN 3
+                    ELSE 4
+                 END,
+                 deptType,
+                 gradeId
+    </select>
+
+    <update id="updateStudentOperateMeta">
+        UPDATE dmw_student
+        SET
+            last_record_time = #{updateTime},
+            update_by = #{updateBy},
+            update_time = #{updateTime}
+        WHERE student_id = #{studentId}
+    </update>
 </mapper>

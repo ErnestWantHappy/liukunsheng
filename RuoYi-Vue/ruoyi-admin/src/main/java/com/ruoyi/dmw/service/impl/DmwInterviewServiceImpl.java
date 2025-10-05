@@ -1,10 +1,15 @@
 package com.ruoyi.dmw.service.impl;
 
+import java.util.Date;
 import java.util.List;
 import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.core.domain.entity.SysRole;
+import com.ruoyi.common.core.domain.model.LoginUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.dmw.mapper.DmwInterviewMapper;
+import com.ruoyi.dmw.mapper.DmwStudentMapper;
 import com.ruoyi.dmw.domain.DmwInterview;
 import com.ruoyi.dmw.service.IDmwInterviewService;
 
@@ -19,6 +24,9 @@ public class DmwInterviewServiceImpl implements IDmwInterviewService
 {
     @Autowired
     private DmwInterviewMapper dmwInterviewMapper;
+
+    @Autowired
+    private DmwStudentMapper dmwStudentMapper;
 
     /**
      * 查询六困生-约谈记录
@@ -41,6 +49,18 @@ public class DmwInterviewServiceImpl implements IDmwInterviewService
     @Override
     public List<DmwInterview> selectDmwInterviewList(DmwInterview dmwInterview)
     {
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+        if (loginUser != null)
+        {
+            for (SysRole role : loginUser.getUser().getRoles())
+            {
+                if ("headteacher".equals(role.getRoleKey()))
+                {
+                    dmwInterview.getParams().put("excludeRoleKey", "psychologist");
+                    break;
+                }
+            }
+        }
         return dmwInterviewMapper.selectDmwInterviewList(dmwInterview);
     }
 
@@ -53,8 +73,16 @@ public class DmwInterviewServiceImpl implements IDmwInterviewService
     @Override
     public int insertDmwInterview(DmwInterview dmwInterview)
     {
-        dmwInterview.setCreateTime(DateUtils.getNowDate());
-        return dmwInterviewMapper.insertDmwInterview(dmwInterview);
+        String username = SecurityUtils.getUsername();
+        Date now = DateUtils.getNowDate();
+        dmwInterview.setCreateBy(username);
+        dmwInterview.setCreateTime(now);
+        int rows = dmwInterviewMapper.insertDmwInterview(dmwInterview);
+        if (rows > 0)
+        {
+            touchStudentOperateMeta(dmwInterview.getStudentId(), username, now);
+        }
+        return rows;
     }
 
     /**
@@ -66,8 +94,16 @@ public class DmwInterviewServiceImpl implements IDmwInterviewService
     @Override
     public int updateDmwInterview(DmwInterview dmwInterview)
     {
-        dmwInterview.setUpdateTime(DateUtils.getNowDate());
-        return dmwInterviewMapper.updateDmwInterview(dmwInterview);
+        String username = SecurityUtils.getUsername();
+        Date now = DateUtils.getNowDate();
+        dmwInterview.setUpdateBy(username);
+        dmwInterview.setUpdateTime(now);
+        int rows = dmwInterviewMapper.updateDmwInterview(dmwInterview);
+        if (rows > 0)
+        {
+            touchStudentOperateMeta(dmwInterview.getStudentId(), username, now);
+        }
+        return rows;
     }
 
     /**
@@ -92,5 +128,14 @@ public class DmwInterviewServiceImpl implements IDmwInterviewService
     public int deleteDmwInterviewByInterviewId(Long interviewId)
     {
         return dmwInterviewMapper.deleteDmwInterviewByInterviewId(interviewId);
+    }
+
+    private void touchStudentOperateMeta(Long studentId, String username, Date operateTime)
+    {
+        if (studentId == null)
+        {
+            return;
+        }
+        dmwStudentMapper.updateStudentOperateMeta(studentId, username, operateTime);
     }
 }

@@ -1,6 +1,11 @@
 package com.ruoyi.dmw.mapper;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
 import com.ruoyi.dmw.domain.DmwStudent;
 
 /**
@@ -81,37 +86,25 @@ public interface DmwStudentMapper
      * 【新增】获取首页仪表盘统计数据
      * @return 统计结果
      */
-    public java.util.Map<String, Object> getDashboardStatistics();
+    public Map<String, Object> getDashboardStatistics(@Param("deptType") String deptType,
+                                                      @Param("gradeId") Integer gradeId,
+                                                      @Param("hardshipType") String hardshipType);
 
-    /**
-     * 【新增】获取六困生类型分布数据
-     * @return 六困生类型分布结果
-     */
-    public java.util.List<java.util.Map<String, Object>> getHardshipDistribution();
+    public List<Map<String, Object>> getHardshipDistribution();
 
-    /**
-     * 【新增】获取年级分布数据
-     * @return 年级分布结果
-     */
-    public java.util.List<java.util.Map<String, Object>> getGradeDistribution();
+    public List<Map<String, Object>> getGradeDistribution();
 
-    /**
-     * 【新增】获取学生状态变更趋势数据
-     * @param months 查询月数
-     * @return 状态变更趋势结果
-     */
-    public java.util.List<java.util.Map<String, Object>> getStatusTrend(int months);
+    public List<Map<String, Object>> getStatusTrend(int months);
 
-    /**
-     * 【新增】获取约谈记录统计数据
-     * @param months 查询月数
-     * @return 约谈记录统计结果
-     */
-    public java.util.List<java.util.Map<String, Object>> getInterviewStats(int months);
+    public List<Map<String, Object>> getInterviewStats(int months);
 
-    /**
-     * 【新增】获取班级困雾学生分布数据
-     * @return 班级困雾学生分布结果
-     */
-    public java.util.List<java.util.Map<String, Object>> getClassHardshipDistribution();
+    public List<Map<String, Object>> getClassHardshipDistribution();
+
+    public List<Map<String, Object>> getHardshipHierarchyStats(@Param("deptType") String deptType,
+                                                              @Param("gradeId") Integer gradeId,
+                                                              @Param("hardshipType") String hardshipType);
+
+    public int updateStudentOperateMeta(@Param("studentId") Long studentId,
+                                        @Param("updateBy") String updateBy,
+                                        @Param("updateTime") Date updateTime);
 }

@@ -87,10 +87,11 @@ export function upgradeAllStudents() {
 }
 
 // 获取首页统计数据
-export function getDashboardStats() {
+export function getDashboardStats(query) {
   return request({
     url: '/dmw/student/dashboard/stats',
-    method: 'get'
+    method: 'get',
+    params: query
   })
 }
 
@@ -112,7 +113,7 @@ export function getGradeDistribution(query) {
   })
 }
 
-// 获取状态变更趋势数据
+// 获取状态变更趋势数据（保留兼容）
 export function getStatusTrend(query) {
   return request({
     url: '/dmw/student/chart/status-trend',
@@ -136,5 +137,31 @@ export function getClassHardshipDistribution(query) {
     url: '/dmw/student/chart/class-hardship',
     method: 'get',
     params: query
+  })
+}
+
+// 获取层级化统计数据
+export function getHardshipHierarchyStats(query) {
+  return request({
+    url: '/dmw/student/dashboard/hierarchy',
+    method: 'get',
+    params: query
+  })
+}
+
+// 获取学生状态历史日志
+export function getStudentLogs(studentId) {
+  return request({
+    url: `/dmw/student/${studentId}/logs`,
+    method: 'get'
+  })
+}
+
+// 更新学生日志操作时间
+export function updateStudentLogTime(logId, data) {
+  return request({
+    url: `/dmw/student/logs/${logId}/time`,
+    method: 'put',
+    data: data
   })
 }

@@ -54,7 +54,8 @@
           </el-table-column>
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template #default="scope">
-              <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['dmw:teach:remove']">删除</el-button>
+              <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['dmw:teach:edit']">修改</el-button>
+              <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['dmw:teach:remove']">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -71,7 +72,7 @@
         <el-dialog :title="title" v-model="open" width="500px" append-to-body>
           <el-form ref="teachRef" :model="form" :rules="rules" label-width="80px">
             <el-form-item label="选择教师" prop="userId">
-              <el-select v-model="form.userId" filterable placeholder="请选择教师">
+              <el-select v-model="form.userId" filterable placeholder="请选择教师" :disabled="Boolean(form.id)">
                 <el-option
                   v-for="item in userList"
                   :key="item.userId"
@@ -112,7 +113,7 @@
     </template>
 
     <script setup name="Teach">
-    import { listTeach, delTeach, addTeach } from "@/api/dmw/teach";
+    import { listTeach, delTeach, addTeach, updateTeach } from "@/api/dmw/teach";
     import { listUser } from "@/api/system/user";
 
     const { proxy } = getCurrentInstance();
@@ -217,18 +218,29 @@
       title.value = "添加任教关系";
     }
 
+    function handleUpdate(row) {
+      reset();
+      form.value = {
+        id: row.id,
+        userId: row.userId,
+        gradeId: row.gradeId,
+        classId: row.classId,
+      };
+      open.value = true;
+      title.value = "修改任教关系";
+    }
     function submitForm() {
       proxy.$refs["teachRef"].validate(valid => {
         if (valid) {
-          addTeach(form.value).then(response => {
-            proxy.$modal.msgSuccess("新增成功");
+          const submitAction = form.value.id ? updateTeach(form.value) : addTeach(form.value);
+          submitAction.then(() => {
+            proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功");
             open.value = false;
             getList();
           });
         }
       });
     }
-
     function handleDelete(row) {
       const delIds = row.id || ids.value;
       proxy.$modal.confirm('是否确认删除选中的任教关系？').then(function() {
