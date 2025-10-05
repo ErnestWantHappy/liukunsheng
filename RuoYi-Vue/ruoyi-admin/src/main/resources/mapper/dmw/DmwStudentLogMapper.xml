@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.dmw.mapper.DmwStudentLogMapper">
+
+    <resultMap id="DmwStudentLogResult" type="com.ruoyi.dmw.domain.DmwStudentLog">
+        <id property="logId" column="log_id" />
+        <result property="studentId" column="student_id" />
+        <result property="changeField" column="change_field" />
+        <result property="previousValue" column="previous_value" />
+        <result property="currentValue" column="current_value" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <insert id="insertStudentLog" parameterType="com.ruoyi.dmw.domain.DmwStudentLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into dmw_student_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="studentId != null">student_id,</if>
+            <if test="changeField != null">change_field,</if>
+            <if test="previousValue != null">previous_value,</if>
+            <if test="currentValue != null">current_value,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="studentId != null">#{studentId},</if>
+            <if test="changeField != null">#{changeField},</if>
+            <if test="previousValue != null">#{previousValue},</if>
+            <if test="currentValue != null">#{currentValue},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <select id="selectLogsByStudentId" parameterType="Long" resultMap="DmwStudentLogResult">
+        select log_id, student_id, change_field, previous_value, current_value, create_by, create_time
+        from dmw_student_log
+        where student_id = #{studentId}
+        order by create_time desc, log_id desc
+    </select>
+</mapper>
