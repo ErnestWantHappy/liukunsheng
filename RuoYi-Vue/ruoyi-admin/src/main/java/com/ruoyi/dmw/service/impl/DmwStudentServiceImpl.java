@@ -46,6 +46,7 @@ public class DmwStudentServiceImpl implements IDmwStudentService
     public List<DmwStudent> selectDmwStudentList(DmwStudent dmwStudent)
     {
         LoginUser loginUser = SecurityUtils.getLoginUser();
+        // 班主任角色需要根据班级权限自动收敛数据范围
         if (loginUser != null) {
             for (SysRole role : loginUser.getUser().getRoles()) {
                 if ("headteacher".equals(role.getRoleKey())) {
@@ -62,6 +63,7 @@ public class DmwStudentServiceImpl implements IDmwStudentService
     public int insertDmwStudent(DmwStudent dmwStudent)
     {
         Date now = DateUtils.getNowDate();
+        // 自动回填创建人和时间等审计字段
         String username = SecurityUtils.getUsername();
         dmwStudent.setCreateBy(username);
         dmwStudent.setCreateTime(now);
@@ -78,11 +80,13 @@ public class DmwStudentServiceImpl implements IDmwStudentService
             return 0;
         }
         DmwStudent before = dmwStudentMapper.selectDmwStudentByStudentId(dmwStudent.getStudentId());
+        // 保存更新前的数据用于生成变更记录
         Date now = DateUtils.getNowDate();
         String username = SecurityUtils.getUsername();
         dmwStudent.setUpdateBy(username);
         dmwStudent.setUpdateTime(now);
         int rows = dmwStudentMapper.updateDmwStudent(dmwStudent);
+        // 更新成功后再追加学生变更日志
         if (rows > 0 && before != null)
         {
             DmwStudent after = dmwStudentMapper.selectDmwStudentByStudentId(dmwStudent.getStudentId());
@@ -112,6 +116,7 @@ public class DmwStudentServiceImpl implements IDmwStudentService
         studentUpdate.setStudentStatus(statusLog.getCurrentStatus());
 
         if ("01".equals(statusLog.getCurrentStatus())) {
+            // 回到正常状态时需要清空状态原因
             studentUpdate.setCurrentStatusReason("");
         } else {
             studentUpdate.setCurrentStatusReason(statusLog.getReason());
@@ -121,6 +126,7 @@ public class DmwStudentServiceImpl implements IDmwStudentService
         studentUpdate.setUpdateTime(now);
         studentUpdate.setUpdateBy(username);
         int rows = dmwStudentMapper.updateDmwStudent(studentUpdate);
+        // 持久化状态变更，返回影响行数
 
         statusLog.setStudentName(student.getStudentName());
         statusLog.setPreviousStatus(student.getStudentStatus());
@@ -137,7 +143,9 @@ public class DmwStudentServiceImpl implements IDmwStudentService
     public int upgradeAllStudents()
     {
         int graduatedCount = dmwStudentMapper.graduateStudents();
+        // 先处理毕业班学生并统计数量
         int upgradedCount = dmwStudentMapper.upgradeOtherStudents();
+        // 再批量升级其余年级的学生
         return graduatedCount + upgradedCount;
     }
 
@@ -177,6 +185,7 @@ public class DmwStudentServiceImpl implements IDmwStudentService
     {
         if (Objects.equals(previous, current))
         {
+            // 未发生变化时直接跳过，避免冗余日志
             return;
         }
         DmwStudentLog log = new DmwStudentLog();
@@ -195,6 +204,7 @@ public class DmwStudentServiceImpl implements IDmwStudentService
     @Override
     public Map<String, Object> getDashboardStatistics(String deptType, Integer gradeId, String hardshipType)
     {
+        // Mapper 已处理筛选条件，这里直接返回结果集
         return dmwStudentMapper.getDashboardStatistics(deptType, gradeId, hardshipType);
     }
 

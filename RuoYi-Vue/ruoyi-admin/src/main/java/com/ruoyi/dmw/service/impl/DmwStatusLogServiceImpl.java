@@ -10,6 +10,7 @@ public class DmwStatusLogServiceImpl implements IDmwStatusLogService {
     private DmwStatusLogMapper dmwStatusLogMapper;
     @Override
     public int insertDmwStatusLog(DmwStatusLog dmwStatusLog) {
+        // 保存一次状态变更记录，供后续追溯
         return dmwStatusLogMapper.insertDmwStatusLog(dmwStatusLog);
     }
 }

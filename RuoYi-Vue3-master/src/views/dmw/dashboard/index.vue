@@ -301,6 +301,7 @@ const buildQueryParams = () => {
   return params
 }
 
+// 汇总筛选条件后批量拉取看板数据
 const fetchAllData = async () => {
   loading.value = true
   const query = buildQueryParams()
@@ -343,10 +344,12 @@ const fetchAllData = async () => {
   }
 }
 
+// 点击筛选按钮后刷新统计
 const handleFilter = () => {
   fetchAllData()
 }
 
+// 清空筛选条件并重新加载
 const handleReset = () => {
   filterForm.value.deptType = ''
   filterForm.value.gradeId = ''
@@ -354,6 +357,7 @@ const handleReset = () => {
   fetchAllData()
 }
 
+// 初次进入页面时加载一次数据
 onMounted(() => {
   fetchAllData()
 })

@@ -56,6 +56,7 @@ public class DmwInterviewServiceImpl implements IDmwInterviewService
             {
                 if ("headteacher".equals(role.getRoleKey()))
                 {
+                    // 班主任查看列表时屏蔽心理老师创建的约谈
                     dmwInterview.getParams().put("excludeRoleKey", "psychologist");
                     break;
                 }
@@ -136,6 +137,7 @@ public class DmwInterviewServiceImpl implements IDmwInterviewService
         {
             return;
         }
+        // 同步更新学生档案的操作人信息
         dmwStudentMapper.updateStudentOperateMeta(studentId, username, operateTime);
     }
 }

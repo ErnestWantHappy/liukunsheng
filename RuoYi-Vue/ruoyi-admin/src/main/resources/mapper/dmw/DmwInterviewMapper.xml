@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.dmw.mapper.DmwInterviewMapper">
 
+    <!-- 映射查询结果到 DmwInterview 实体类 -->
     <resultMap type="DmwInterview" id="DmwInterviewResult">
         <result property="interviewId"    column="interview_id"    />
         <result property="studentId"    column="student_id"    />
-        <!-- 新增：将查询到的 student_name 映射到实体类的 studentName 字段 -->
+        <!-- 映射学生姓名 -->
         <result property="studentName"  column="student_name"    />
         <result property="interviewTime"    column="interview_time"    />
         <result property="location"    column="location"    />
@@ -22,39 +21,46 @@
         <result property="remark"    column="remark"    />
     </resultMap>
 
-    <!-- 修改：使用 left join 关联学生表，并为表设置别名 i 和 s -->
+    <!-- 使用 left join 关联学生表，并为表设置别名 i 和 s -->
     <sql id="selectDmwInterviewVo">
         select i.interview_id, i.student_id, s.student_name, i.interview_time, i.location, i.participants, i.recorder, i.content, i.attachment_url, i.create_by, i.create_time, i.update_by, i.update_time, i.remark
         from dmw_interview i
                  left join dmw_student s on i.student_id = s.student_id
     </sql>
 
+    <!-- 根据查询条件筛选面试记录 -->
     <select id="selectDmwInterviewList" parameterType="DmwInterview" resultMap="DmwInterviewResult">
         <include refid="selectDmwInterviewVo"/>
-        <!-- 修改：简化查询条件以匹配前端需求 -->
         <where>
+            <!-- 根据 studentId 过滤 -->
             <if test="studentId != null "> and i.student_id = #{studentId}</if>
+            <!-- 根据 studentName 过滤 -->
             <if test="studentName != null and studentName != ''"> and s.student_name like concat('%', #{studentName}, '%')</if>
+            <!-- 排除特定角色 -->
             <if test="params.excludeRoleKey != null">
                 and not exists (
-                    select 1
-                    from sys_user su
-                             join sys_user_role sur on su.user_id = sur.user_id
-                             join sys_role sr on sur.role_id = sr.role_id
-                    where su.user_name = i.create_by
-                      and sr.role_key = #{params.excludeRoleKey}
+                select 1
+                from sys_user su
+                join sys_user_role sur on su.user_id = sur.user_id
+                join sys_role sr on sur.role_id = sr.role_id
+                where su.user_name = i.create_by
+                and sr.role_key = #{params.excludeRoleKey}
                 )
             </if>
         </where>
     </select>
 
+    <!-- 根据面试 ID 获取面试详情 -->
     <select id="selectDmwInterviewByInterviewId" parameterType="Long" resultMap="DmwInterviewResult">
         <include refid="selectDmwInterviewVo"/>
-        <!-- 修改：使用别名 i -->
-        where i.interview_id = #{interviewId}
+        <where>
+            <!-- 使用面试 ID 过滤 -->
+            where i.interview_id = #{interviewId}
+        </where>
     </select>
 
-    <!-- 以下 insert, update, delete 部分保持不变 -->
+    <!-- 以下为增、改、删操作 -->
+
     <insert id="insertDmwInterview" parameterType="DmwInterview" useGeneratedKeys="true" keyProperty="interviewId">
         insert into dmw_interview
         <trim prefix="(" suffix=")" suffixOverrides=",">

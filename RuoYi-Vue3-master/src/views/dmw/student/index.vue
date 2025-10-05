@@ -599,6 +599,7 @@ const data = reactive({
 const { queryParams, form, rules } = toRefs(data);
 
 /** 查询学生信息列表 */
+// 拉取学生列表数据
 function getList() {
   loading.value = true;
   proxy.addDateRange(queryParams.value, dateRange.value);
@@ -610,6 +611,7 @@ function getList() {
 }
 
 /** 获取当前登录教师的班级列表 */
+// 获取教师可见的班级列表
 function fetchTeacherClasses() {
   if (isHeadTeacher.value) {
     getMyClasses().then(response => {
@@ -785,10 +787,12 @@ function submitFileForm() {
 
 /** 新增约谈按钮操作 */
 const interviewFormRef = ref(null);
+// 新增访谈记录时打开弹窗
 function handleInterviewAdd(row) {
     interviewFormRef.value.open(null, row.studentId, row.studentName);
 }
 
+// 查看学生状态历史记录
 function handleHistory(row) {
   if (!row || !row.studentId) {
     return;
@@ -816,6 +820,7 @@ function handleHistory(row) {
     });
 }
 
+// 保存历史记录手动调整的时间
 function saveHistoryTime(row) {
   if (!row || !row.logId) {
     return;
@@ -836,17 +841,20 @@ function saveHistoryTime(row) {
 }
 
 /** 下载按钮操作 */
+// 下载指定学生的档案压缩包
 function handleDownload(row) {
     proxy.download('/dmw/student/downloadProfile/' + row.studentId, {}, `学生档案_${row.studentName}.zip`, { method: 'post' })
 }
 
 const statusChangeRef = ref(null);
 /** 状态变更按钮操作 */
+// 打开状态变更对话框
 function handleStatusChange(row, targetStatus) {
   statusChangeRef.value.open(row, targetStatus);
 }
 
 /** 全员升级按钮操作 */
+// 触发全员升级流程前的二次确认
 function handleUpgradeAll() {
   let confirmInput = '';
   proxy.$msgbox({
