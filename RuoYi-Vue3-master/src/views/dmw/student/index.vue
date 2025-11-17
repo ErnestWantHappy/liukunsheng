@@ -370,57 +370,7 @@
          </div>
       </template>
     </el-dialog>
-    <!-- 历史轨迹弹窗 -->
-    <el-dialog :title="`历史轨迹 - ${historyStudentName || ''}`" v-model="historyVisible" width="820px" append-to-body>
-      <el-table v-loading="historyLoading" :data="historyRecords" row-key="logId" style="width:100%" class="history-table">
-        <el-table-column label="变更字段" align="center" width="140">
-          <template #default="scope">
-            {{ formatChangeField(scope.row.changeField) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="变更前" align="center">
-          <template #default="scope">
-            {{ formatChangeValue(scope.row.changeField, scope.row.previousValue) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="变更后" align="center">
-          <template #default="scope">
-            {{ formatChangeValue(scope.row.changeField, scope.row.currentValue) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作人" align="center" prop="createBy" />
-        <el-table-column label="操作时间" align="center" width="220" class-name="history-time-column">
-          <template #default="scope">
-            <el-date-picker
-              v-if="scope.row.editable"
-              v-model="scope.row.editTime"
-              type="datetime"
-              value-format="YYYY-MM-DD HH:mm:ss"
-              format="YYYY-MM-DD HH:mm:ss"
-              placeholder="请选择操作时间"
-              style="width: 200px"
-            />
-            <span v-else>{{ formatLogTime(scope.row.createTime) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" align="center" width="120">
-          <template #default="scope">
-            <el-button
-              v-if="scope.row.editable"
-              type="primary"
-              link
-              :loading="scope.row.saving"
-              @click="saveHistoryTime(scope.row)"
-            >保存</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="historyVisible = false">关 闭</el-button>
-        </div>
-      </template>
-    </el-dialog>
+    <HistoryTrajectoryDialog ref="historyDialogRef" />
 
     <!-- 其他弹窗 -->
     <InterviewForm ref="interviewFormRef" @ok="getList" />
@@ -430,12 +380,13 @@
 
 <script setup name="Student">
 import { h, ref, reactive, computed, toRefs, getCurrentInstance } from "vue";
-import { listStudent, getStudent, delStudent, addStudent, updateStudent, downloadProfile, changeStudentStatus, upgradeAllStudents, getStudentLogs, updateStudentLogTime } from "@/api/dmw/student";
+import { listStudent, getStudent, delStudent, addStudent, updateStudent, downloadProfile, changeStudentStatus, upgradeAllStudents } from "@/api/dmw/student";
 import { getMyClasses } from "@/api/dmw/teach";
 import { getToken } from "@/utils/auth";
 import useUserStore from '@/store/modules/user';
 import InterviewForm from "../interview/form.vue";
 import StatusChangeDialog from "./StatusChangeDialog.vue";
+import HistoryTrajectoryDialog from "./HistoryTrajectoryDialog.vue";
 
 const { proxy } = getCurrentInstance();
 const userStore = useUserStore();
@@ -496,43 +447,7 @@ const classOptions = ref(
   }))
 );
 
-const historyVisible = ref(false);
-const historyRecords = ref([]);
-const historyLoading = ref(false);
-const historyStudentName = ref("");
-
-const changeFieldLabels = {
-  hardship_type: "六困生类型",
-  student_status: "学生状态"
-};
-
-const formatChangeField = (field) => changeFieldLabels[field] || field;
-
-const getDictLabel = (dictRef, value) => {
-  const list = dictRef?.value || [];
-  const target = list.find(item => item.value === value);
-  return target ? target.label : value;
-};
-
-const formatChangeValue = (field, value) => {
-  if (value === undefined || value === null || value === "") {
-    return "";
-  }
-  if (field === "hardship_type") {
-    return getDictLabel(dmw_hardship_type, value);
-  }
-  if (field === "student_status") {
-    return getDictLabel(dmw_student_status, value);
-  }
-  return value;
-};
-
-const formatLogTime = (value) => {
-  if (!value) {
-    return "";
-  }
-  return proxy.parseTime ? proxy.parseTime(value, "{y}-{m}-{d} {h}:{i}:{s}") : value;
-};
+const historyDialogRef = ref(null);
 
 // 计算属性，判断当前用户是否为班主任 (非admin)
 const isHeadTeacher = computed(() => userStore.roles.includes(HEAD_TEACHER_ROLE_KEY));
@@ -792,52 +707,12 @@ function handleInterviewAdd(row) {
     interviewFormRef.value.open(null, row.studentId, row.studentName);
 }
 
-// 查看学生状态历史记录
+// 查看学生全量历史轨迹
 function handleHistory(row) {
   if (!row || !row.studentId) {
     return;
   }
-  historyStudentName.value = row.studentName || "";
-  historyVisible.value = true;
-  historyLoading.value = true;
-  historyRecords.value = [];
-  getStudentLogs(row.studentId)
-    .then(response => {
-      const currentName = userStore.name;
-      const list = response.data || [];
-      historyRecords.value = list.map(item => ({
-        ...item,
-        editable: currentName && item.createBy === currentName,
-        editTime: item.createTime || '',
-        saving: false
-      }));
-    })
-    .catch(() => {
-      historyRecords.value = [];
-    })
-    .finally(() => {
-      historyLoading.value = false;
-    });
-}
-
-// 保存历史记录手动调整的时间
-function saveHistoryTime(row) {
-  if (!row || !row.logId) {
-    return;
-  }
-  if (!row.editTime) {
-    proxy.$modal.msgError('请选择操作时间');
-    return;
-  }
-  row.saving = true;
-  updateStudentLogTime(row.logId, { createTime: row.editTime })
-    .then(() => {
-      row.createTime = row.editTime;
-      proxy.$modal.msgSuccess('保存成功');
-    })
-    .finally(() => {
-      row.saving = false;
-    });
+  historyDialogRef.value?.open(row.studentId, row.studentName || "");
 }
 
 /** 下载按钮操作 */
@@ -906,17 +781,3 @@ function handleUpgradeAll() {
 getList();
 fetchTeacherClasses();
 </script>
-
-<style scoped>
-.history-dialog :deep(.history-time-column .cell) {
-  overflow: visible !important;
-
-}
-.history-dialog :deep(.history-time-column .el-date-editor) {
-  width: 220px;
-}
-.history-table :deep(.el-table__cell .cell) {
-  overflow: visible !important;
-}
-
-</style>

@@ -42,14 +42,15 @@
           :on-remove="handleRemove"
           :before-upload="beforeUpload"
           :file-list="fileList"
-          :limit="1"
+          :limit="uploadLimit"
           :on-exceed="handleExceed"
-          accept=".zip,.rar,.7z"
+          multiple="true"
+          accept=".doc,.docx,.pdf,.jpg,.jpeg,.png,.mp4,.mp3,.zip,.rar,.7z"
         >
-          <el-button size="small" type="primary">点击上传</el-button>
+          <el-button size="small" type="primary">上传附件</el-button>
           <template #tip>
             <div class="el-upload__tip">
-              只能上传一个压缩包文件（.zip/.rar/.7z），且大小不超过 50MB。
+              支持 doc/docx/pdf/jpg/png/mp4/mp3/zip 等格式，单个文件不超过 50MB，最多 10 个。
             </div>
           </template>
         </el-upload>
@@ -73,14 +74,20 @@ const emit = defineEmits(['ok']);
 
 const { dmw_interview_location } = proxy.useDict("dmw_interview_location");
 
+const MAX_FILE_COUNT = 10;
+const MAX_FILE_SIZE_MB = 50;
+const ALLOWED_EXTENSIONS = ['doc', 'docx', 'pdf', 'jpg', 'jpeg', 'png', 'mp4', 'mp3', 'zip', 'rar', '7z'];
+
 const open = ref(false);
 const title = ref("");
+const uploadRef = ref(null);
 const fileList = ref([]);
+const attachments = ref([]);
+const uploadLimit = MAX_FILE_COUNT;
 
-// 文件上传相关
 const upload = reactive({
   headers: { Authorization: "Bearer " + getToken() },
-  url: import.meta.env.VITE_APP_BASE_API + "/common/upload",
+  url: import.meta.env.VITE_APP_BASE_API + "/common/upload"
 });
 
 const data = reactive({
@@ -97,6 +104,85 @@ const data = reactive({
 
 const { form, rules } = toRefs(data);
 
+function syncAttachmentField() {
+  form.value.attachmentUrl = attachments.value.length ? JSON.stringify(attachments.value) : null;
+}
+
+function updateFileListFromAttachments() {
+  fileList.value = attachments.value.map(item => ({
+    uid: item.uid,
+    name: item.name || extractFileName(item.url),
+    url: item.url,
+    status: 'success'
+  }));
+}
+
+function extractFileName(path = "") {
+  if (!path) return "";
+  const segments = path.split("/");
+  return segments[segments.length - 1] || path;
+}
+
+function getFileExtension(name = "") {
+  if (!name) return "";
+  const idx = name.lastIndexOf(".");
+  return idx > -1 ? name.substring(idx + 1).toLowerCase() : "";
+}
+
+function normalizeAttachment(item) {
+  if (!item || !item.url) {
+    return null;
+  }
+  const name = item.name || extractFileName(item.url);
+  const uid = item.uid || `${Date.now()}_${Math.random()}`;
+  return {
+    uid,
+    name,
+    url: item.url,
+    previewUrl: item.previewUrl || item.url,
+    type: item.type || getFileExtension(name),
+    size: item.size || 0
+  };
+}
+
+function parseAttachmentValue(raw) {
+  if (!raw) {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map(normalizeAttachment)
+        .filter(Boolean);
+    }
+  } catch (e) {
+    // ignore json parse error and fallback
+  }
+  const fallback = normalizeAttachment({ url: raw });
+  return fallback ? [fallback] : [];
+}
+
+function handleUploadSuccess(response, file) {
+  if (response.code !== 200) {
+    proxy.$modal.msgError(response.msg || "上传失败");
+    return;
+  }
+  const meta = normalizeAttachment({
+    uid: file.uid,
+    name: response.originalFilename || response.newFileName || file.name,
+    url: response.url,
+    previewUrl: response.previewUrl || response.url,
+    type: getFileExtension(file.name),
+    size: file.size
+  });
+  if (meta) {
+    attachments.value.push(meta);
+    syncAttachmentField();
+    proxy.$modal.msgSuccess("上传成功");
+  }
+}
+
 /** 表单重置 */
 function reset() {
   form.value = {
@@ -110,7 +196,11 @@ function reset() {
     content: null,
     attachmentUrl: null,
   };
-  fileList.value = [];
+  attachments.value = [];
+  updateFileListFromAttachments();
+  if (uploadRef.value) {
+    uploadRef.value.clearFiles();
+  }
   proxy.resetForm("interviewRef");
 }
 
@@ -130,11 +220,9 @@ function openDialog(id, studentId, studentName) {
     getInterview(id).then(response => {
       form.value = response.data;
       form.value.studentName = studentName;
-      if (response.data.attachmentUrl) {
-        // 假设附件名就是URL路径的一部分
-        const fileName = response.data.attachmentUrl.substring(response.data.attachmentUrl.lastIndexOf('/') + 1);
-        fileList.value.push({ name: fileName, url: response.data.attachmentUrl });
-      }
+      attachments.value = parseAttachmentValue(response.data.attachmentUrl);
+      updateFileListFromAttachments();
+      syncAttachmentField();
     });
   } else {
     title.value = "新增约谈记录";
@@ -145,56 +233,51 @@ defineExpose({
   open: openDialog
 });
 
-// 文件上传成功处理
-function handleUploadSuccess(response, file, fileList) {
-  if (response.code === 200) {
-    form.value.attachmentUrl = response.url; // 保存完整的URL
-    proxy.$modal.msgSuccess("上传成功");
-  } else {
-    proxy.$modal.msgError(response.msg);
-    // 上传失败时，清空文件列表
-    proxy.$refs.uploadRef.clearFiles();
-  }
-}
-
 // 文件移除处理
-function handleRemove(file, fileList) {
-  form.value.attachmentUrl = null;
+function handleRemove(file) {
+  attachments.value = attachments.value.filter(item => item.uid !== file.uid);
+  syncAttachmentField();
 }
 
 // 上传前校验
 function beforeUpload(file) {
-  const isCompressed = /\.(zip|rar|7z)$/i.test(file.name);
-  const isLt50M = file.size / 1024 / 1024 < 50;
-
-  if (!isCompressed) {
-    proxy.$modal.msgError('上传附件只能是 .zip, .rar, .7z 格式!');
+  const ext = getFileExtension(file.name);
+  if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    proxy.$modal.msgError('文件格式不支持，请上传 doc/ppt/pdf/jpg/png/mp4/mp3/zip 等类型。');
+    return false;
   }
-  if (!isLt50M) {
-    proxy.$modal.msgError('上传附件大小不能超过 50MB!');
+  const isLtSize = file.size / 1024 / 1024 < MAX_FILE_SIZE_MB;
+  if (!isLtSize) {
+    proxy.$modal.msgError(`单个文件不能超过 ${MAX_FILE_SIZE_MB}MB!`);
+    return false;
   }
-  return isCompressed && isLt50M;
+  if (attachments.value.length >= uploadLimit) {
+    proxy.$modal.msgWarning(`最多只能上传 ${uploadLimit} 个附件`);
+    return false;
+  }
+  return true;
 }
 
 // 文件超出个数限制时的钩子
 function handleExceed(files, fileList) {
   proxy.$modal.msgWarning(
-    `当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`
+    `最多只能上传 ${uploadLimit} 个附件，本次共选择了 ${files.length + fileList.length} 个文件`
   );
 }
 
 /** 提交按钮 */
 function submitForm() {
+  syncAttachmentField();
   proxy.$refs["interviewRef"].validate(valid => {
     if (valid) {
       if (form.value.interviewId != null) {
-        updateInterview(form.value).then(response => {
+        updateInterview(form.value).then(() => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           emit('ok');
         });
       } else {
-        addInterview(form.value).then(response => {
+        addInterview(form.value).then(() => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           emit('ok');

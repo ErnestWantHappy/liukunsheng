@@ -1,13 +1,23 @@
 package com.ruoyi.dmw.service.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+
 import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.common.utils.DictUtils;
 import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.dmw.domain.DmwInterview;
 import com.ruoyi.dmw.domain.DmwStatusLog;
 import com.ruoyi.dmw.domain.DmwStudentLog;
+import com.ruoyi.dmw.domain.vo.AttachmentInfo;
+import com.ruoyi.dmw.domain.vo.StudentTimelineEvent;
+import com.ruoyi.dmw.service.IDmwInterviewService;
 import com.ruoyi.dmw.service.IDmwStatusLogService;
 import com.ruoyi.dmw.service.IDmwStudentLogService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +45,51 @@ public class DmwStudentServiceImpl implements IDmwStudentService
 
     @Autowired
     private IDmwStudentLogService dmwStudentLogService;
+
+    @Autowired
+    private IDmwInterviewService dmwInterviewService;
+
+    private static final Map<String, Function<DmwStudent, Object>> STUDENT_FIELD_EXTRACTORS = new LinkedHashMap<>();
+    private static final Map<String, String> STUDENT_FIELD_LABELS = new LinkedHashMap<>();
+    private static final Map<String, String> STUDENT_FIELD_DICTS = new LinkedHashMap<>();
+
+    static
+    {
+        registerField("student_name", "学生姓名", null, DmwStudent::getStudentName);
+        registerField("id_card_no", "身份证号", null, DmwStudent::getIdCardNo);
+        registerField("dept_type", "学部", "dmw_dept_type", DmwStudent::getDeptType);
+        registerField("grade_id", "年级", null, DmwStudent::getGradeId);
+        registerField("class_id", "班级", null, DmwStudent::getClassId);
+        registerField("gender", "性别", "sys_user_sex", DmwStudent::getGender);
+        registerField("is_only_child", "是否独生", "dmw_yes_no", DmwStudent::getIsOnlyChild);
+        registerField("health_status", "身体状况", "dmw_health_status", DmwStudent::getHealthStatus);
+        registerField("address", "家庭地址", null, DmwStudent::getAddress);
+        registerField("family_structure", "家庭结构", "dmw_family_structure", DmwStudent::getFamilyStructure);
+        registerField("family_atmosphere", "家庭氛围", "dmw_family_atmosphere", DmwStudent::getFamilyAtmosphere);
+        registerField("economic_status", "经济情况", "dmw_economic_status", DmwStudent::getEconomicStatus);
+        registerField("parent_occupation", "父母职业", null, DmwStudent::getParentOccupation);
+        registerField("foster_left_behind", "寄养/留守经历", "dmw_yes_no", DmwStudent::getFosterLeftBehind);
+        registerField("self_harm_history", "自伤自残史", "dmw_self_harm_history", DmwStudent::getSelfHarmHistory);
+        registerField("hardship_type", "六困生类型", "dmw_hardship_type", DmwStudent::getHardshipType);
+        registerField("student_details", "学生详细情况", null, DmwStudent::getStudentDetails);
+        registerField("countermeasures", "应对措施", null, DmwStudent::getCountermeasures);
+        registerField("teacher_report_info", "教师上报信息", null, DmwStudent::getTeacherReportInfo);
+        registerField("student_status", "学生状态", "dmw_student_status", DmwStudent::getStudentStatus);
+        registerField("current_status_reason", "状态原因", null, DmwStudent::getCurrentStatusReason);
+        registerField("report_status", "上报状态", "dmw_report_status", DmwStudent::getReportStatus);
+        registerField("last_record_time", "最近记录时间", null, DmwStudent::getLastRecordTime);
+        registerField("remark", "备注", null, DmwStudent::getRemark);
+    }
+
+    private static void registerField(String field, String label, String dictType, Function<DmwStudent, Object> extractor)
+    {
+        STUDENT_FIELD_EXTRACTORS.put(field, extractor);
+        STUDENT_FIELD_LABELS.put(field, label);
+        if (StringUtils.isNotBlank(dictType))
+        {
+            STUDENT_FIELD_DICTS.put(field, dictType);
+        }
+    }
 
     @Override
     public DmwStudent selectDmwStudentByStudentId(Long studentId)
@@ -90,7 +145,7 @@ public class DmwStudentServiceImpl implements IDmwStudentService
         if (rows > 0 && before != null)
         {
             DmwStudent after = dmwStudentMapper.selectDmwStudentByStudentId(dmwStudent.getStudentId());
-            recordStudentChange(before, after, username, now);
+            recordStudentChanges(before, after, username, now);
         }
         return rows;
     }
@@ -166,7 +221,7 @@ public class DmwStudentServiceImpl implements IDmwStudentService
         return dmwStudentMapper.updateDmwStudent(dmwStudent);
     }
 
-    private void recordStudentChange(DmwStudent before, DmwStudent after, String operator, Date operateTime)
+    private void recordStudentChanges(DmwStudent before, DmwStudent after, String operator, Date operateTime)
     {
         if (before == null || after == null)
         {
@@ -177,8 +232,24 @@ public class DmwStudentServiceImpl implements IDmwStudentService
         {
             return;
         }
-        recordStudentChange(studentId, "hardship_type", before.getHardshipType(), after.getHardshipType(), operator, operateTime);
-        recordStudentChange(studentId, "student_status", before.getStudentStatus(), after.getStudentStatus(), operator, operateTime);
+        STUDENT_FIELD_EXTRACTORS.forEach((field, extractor) -> {
+            String previous = stringifyValue(extractor.apply(before));
+            String current = stringifyValue(extractor.apply(after));
+            recordStudentChange(studentId, field, previous, current, operator, operateTime);
+        });
+    }
+
+    private String stringifyValue(Object value)
+    {
+        if (value == null)
+        {
+            return "";
+        }
+        if (value instanceof Date)
+        {
+            return DateUtils.parseDateToStr("yyyy-MM-dd HH:mm:ss", (Date) value);
+        }
+        return String.valueOf(value);
     }
 
     private void recordStudentChange(Long studentId, String field, String previous, String current, String operator, Date operateTime)
@@ -263,5 +334,119 @@ public class DmwStudentServiceImpl implements IDmwStudentService
     public List<DmwStudentLog> getStudentLogs(Long studentId)
     {
         return dmwStudentLogService.selectLogsByStudentId(studentId);
+    }
+
+    @Override
+    public List<StudentTimelineEvent> getStudentTimeline(Long studentId)
+    {
+        List<StudentTimelineEvent> events = new ArrayList<>();
+        List<DmwStudentLog> studentLogs = dmwStudentLogService.selectLogsByStudentId(studentId);
+        for (DmwStudentLog log : studentLogs)
+        {
+            StudentTimelineEvent event = new StudentTimelineEvent();
+            event.setEventId("studentLog-" + log.getLogId());
+            event.setEventType("studentLog");
+            event.setEventTitle("学生信息变更");
+            event.setEventTime(log.getCreateTime());
+            event.setOperator(log.getCreateBy());
+            event.setChangeField(log.getChangeField());
+            event.setChangeFieldLabel(STUDENT_FIELD_LABELS.getOrDefault(log.getChangeField(), log.getChangeField()));
+            event.setPreviousValue(log.getPreviousValue());
+            event.setPreviousLabel(resolveFieldValueLabel(log.getChangeField(), log.getPreviousValue()));
+            event.setCurrentValue(log.getCurrentValue());
+            event.setCurrentLabel(resolveFieldValueLabel(log.getChangeField(), log.getCurrentValue()));
+            events.add(event);
+        }
+        List<DmwStatusLog> statusLogs = dmwStatusLogService.selectLogsByStudentId(studentId);
+        for (DmwStatusLog statusLog : statusLogs)
+        {
+            StudentTimelineEvent event = new StudentTimelineEvent();
+            event.setEventId("statusLog-" + statusLog.getLogId());
+            event.setEventType("statusLog");
+            event.setEventTitle("学生状态调整");
+            event.setEventTime(firstNonNull(statusLog.getCreateTime(), statusLog.getStartDate(), statusLog.getEndDate()));
+            event.setOperator(statusLog.getCreateBy());
+            event.setChangeField("student_status");
+            event.setChangeFieldLabel(STUDENT_FIELD_LABELS.get("student_status"));
+            event.setPreviousValue(statusLog.getPreviousStatus());
+            event.setPreviousLabel(resolveFieldValueLabel("student_status", statusLog.getPreviousStatus()));
+            event.setCurrentValue(statusLog.getCurrentStatus());
+            event.setCurrentLabel(resolveFieldValueLabel("student_status", statusLog.getCurrentStatus()));
+            event.setRemark(statusLog.getReason());
+            event.setAttachments(parseAttachments(statusLog.getAttachmentUrl()));
+            events.add(event);
+        }
+        DmwInterview query = new DmwInterview();
+        query.setStudentId(studentId);
+        List<DmwInterview> interviews = dmwInterviewService.selectDmwInterviewList(query);
+        for (DmwInterview interview : interviews)
+        {
+            StudentTimelineEvent event = new StudentTimelineEvent();
+            event.setEventId("interview-" + interview.getInterviewId());
+            event.setEventType("interview");
+            event.setEventTitle("约谈记录");
+            event.setEventTime(interview.getInterviewTime());
+            event.setOperator(interview.getRecorder());
+            event.setParticipants(interview.getParticipants());
+            event.setContent(interview.getContent());
+            event.setLocation(interview.getLocation());
+            event.setLocationLabel(DictUtils.getDictLabel("dmw_interview_location", interview.getLocation()));
+            event.setAttachments(parseAttachments(interview.getAttachmentUrl()));
+            events.add(event);
+        }
+        events.sort((a, b) -> {
+            Date t1 = a.getEventTime();
+            Date t2 = b.getEventTime();
+            if (t1 == null && t2 == null)
+            {
+                return 0;
+            }
+            if (t1 == null)
+            {
+                return 1;
+            }
+            if (t2 == null)
+            {
+                return -1;
+            }
+            return t2.compareTo(t1);
+        });
+        return events;
+    }
+
+    private List<AttachmentInfo> parseAttachments(String raw)
+    {
+        return new ArrayList<>(AttachmentInfo.parseList(raw));
+    }
+
+    private String resolveFieldValueLabel(String fieldKey, String value)
+    {
+        if (StringUtils.isBlank(value))
+        {
+            return "";
+        }
+        String dictType = STUDENT_FIELD_DICTS.get(fieldKey);
+        if (StringUtils.isBlank(dictType))
+        {
+            return value;
+        }
+        String label = DictUtils.getDictLabel(dictType, value);
+        return StringUtils.isNotBlank(label) ? label : value;
+    }
+
+    private Date firstNonNull(Date... dates)
+    {
+        if (dates == null)
+        {
+            return null;
+        }
+        for (Date date : dates)
+        {
+            if (date != null)
+            {
+                return date;
+            }
+        }
+        return null;
     }
 }

@@ -6,6 +6,7 @@ import java.util.Map;
 import com.ruoyi.dmw.domain.DmwStudent;
 import com.ruoyi.dmw.domain.DmwStudentLog;
 import com.ruoyi.dmw.domain.DmwStatusLog;
+import com.ruoyi.dmw.domain.vo.StudentTimelineEvent;
 
 /**
  * 六困生-学生信息Service接口
@@ -133,4 +134,9 @@ public interface IDmwStudentService
      * 获取学生变更日志
      */
     public List<DmwStudentLog> getStudentLogs(Long studentId);
+
+    /**
+     * 获取学生全量时间线
+     */
+    public List<StudentTimelineEvent> getStudentTimeline(Long studentId);
 }

@@ -157,11 +157,10 @@ export function getStudentLogs(studentId) {
   })
 }
 
-// 更新学生日志操作时间
-export function updateStudentLogTime(logId, data) {
+// 获取学生全量历史时间线
+export function getStudentTimeline(studentId) {
   return request({
-    url: `/dmw/student/logs/${logId}/time`,
-    method: 'put',
-    data: data
+    url: `/dmw/student/${studentId}/timeline`,
+    method: 'get'
   })
 }

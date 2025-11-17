@@ -1,7 +1,9 @@
 package com.ruoyi.web.controller.common;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -11,11 +13,13 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import com.ruoyi.common.config.RuoYiConfig;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.file.DocumentPreviewUtils;
 import com.ruoyi.common.utils.file.FileUploadUtils;
 import com.ruoyi.common.utils.file.FileUtils;
 import com.ruoyi.framework.config.ServerConfig;
@@ -81,8 +85,18 @@ public class CommonController
             // 上传并返回新文件名称
             String fileName = FileUploadUtils.upload(filePath, file);
             String url = serverConfig.getUrl() + fileName;
+            String previewRelative = null;
+            String extension = FileUploadUtils.getExtension(file);
+            if (DocumentPreviewUtils.supportConvert(extension))
+            {
+                previewRelative = DocumentPreviewUtils.convertToPdf(fileName);
+            }
+            String previewUrl = StringUtils.isNotBlank(previewRelative) ? serverConfig.getUrl() + previewRelative : url;
             AjaxResult ajax = AjaxResult.success();
             ajax.put("url", url);
+            ajax.put("previewUrl", previewUrl);
+            ajax.put("relativePath", fileName);
+            ajax.put("previewRelativePath", previewRelative);
             ajax.put("fileName", fileName);
             ajax.put("newFileName", FileUtils.getName(fileName));
             ajax.put("originalFilename", file.getOriginalFilename());
@@ -90,7 +104,8 @@ public class CommonController
         }
         catch (Exception e)
         {
-            return AjaxResult.error(e.getMessage());
+            log.error("上传文件失败", e);
+            return AjaxResult.error("文件上传失败，请稍后重试");
         }
     }
 
@@ -105,7 +120,9 @@ public class CommonController
             // 上传文件路径
             String filePath = RuoYiConfig.getUploadPath();
             List<String> urls = new ArrayList<String>();
+            List<String> previewUrls = new ArrayList<String>();
             List<String> fileNames = new ArrayList<String>();
+            List<String> previewRelativePaths = new ArrayList<String>();
             List<String> newFileNames = new ArrayList<String>();
             List<String> originalFilenames = new ArrayList<String>();
             for (MultipartFile file : files)
@@ -113,13 +130,24 @@ public class CommonController
                 // 上传并返回新文件名称
                 String fileName = FileUploadUtils.upload(filePath, file);
                 String url = serverConfig.getUrl() + fileName;
+                String previewRelative = null;
+                String extension = FileUploadUtils.getExtension(file);
+                if (DocumentPreviewUtils.supportConvert(extension))
+                {
+                    previewRelative = DocumentPreviewUtils.convertToPdf(fileName);
+                }
                 urls.add(url);
+                previewUrls.add(StringUtils.isNotBlank(previewRelative) ? serverConfig.getUrl() + previewRelative : url);
                 fileNames.add(fileName);
+                previewRelativePaths.add(StringUtils.defaultString(previewRelative, fileName));
                 newFileNames.add(FileUtils.getName(fileName));
                 originalFilenames.add(file.getOriginalFilename());
             }
             AjaxResult ajax = AjaxResult.success();
             ajax.put("urls", StringUtils.join(urls, FILE_DELIMETER));
+            ajax.put("previewUrls", StringUtils.join(previewUrls, FILE_DELIMETER));
+            ajax.put("relativePaths", StringUtils.join(fileNames, FILE_DELIMETER));
+            ajax.put("previewRelativePaths", StringUtils.join(previewRelativePaths, FILE_DELIMETER));
             ajax.put("fileNames", StringUtils.join(fileNames, FILE_DELIMETER));
             ajax.put("newFileNames", StringUtils.join(newFileNames, FILE_DELIMETER));
             ajax.put("originalFilenames", StringUtils.join(originalFilenames, FILE_DELIMETER));
@@ -127,7 +155,59 @@ public class CommonController
         }
         catch (Exception e)
         {
-            return AjaxResult.error(e.getMessage());
+            log.error("批量上传文件失败", e);
+            return AjaxResult.error("批量上传失败，请稍后重试");
+        }
+    }
+
+    /**
+     * 通用上传请求（结构化附件信息）
+     */
+    @PostMapping("/upload/attachments")
+    public AjaxResult uploadAttachmentFiles(@RequestParam("files") MultipartFile[] files) throws Exception
+    {
+        if (files == null || files.length == 0)
+        {
+            return AjaxResult.error("请选择至少一个附件");
+        }
+        try
+        {
+            String filePath = RuoYiConfig.getUploadPath();
+            List<Map<String, Object>> attachments = new ArrayList<>();
+            for (MultipartFile file : files)
+            {
+                if (file == null || file.isEmpty())
+                {
+                    continue;
+                }
+                String fileName = FileUploadUtils.upload(filePath, file);
+                String url = serverConfig.getUrl() + fileName;
+                String previewRelative = null;
+                String extension = FileUploadUtils.getExtension(file);
+                if (DocumentPreviewUtils.supportConvert(extension))
+                {
+                    previewRelative = DocumentPreviewUtils.convertToPdf(fileName);
+                }
+                Map<String, Object> meta = new HashMap<>();
+                String originalName = StringUtils.isNotBlank(file.getOriginalFilename())
+                        ? file.getOriginalFilename()
+                        : FileUtils.getName(fileName);
+                meta.put("name", originalName);
+                meta.put("url", url);
+                meta.put("previewUrl", StringUtils.isNotBlank(previewRelative) ? serverConfig.getUrl() + previewRelative : url);
+                meta.put("previewRelativePath", previewRelative);
+                meta.put("type", FileUploadUtils.getExtension(file));
+                meta.put("size", file.getSize());
+                attachments.add(meta);
+            }
+            AjaxResult ajax = AjaxResult.success();
+            ajax.put("attachments", attachments);
+            return ajax;
+        }
+        catch (Exception e)
+        {
+            log.error("上传附件失败", e);
+            return AjaxResult.error("附件上传失败，请稍后重试");
         }
     }
 

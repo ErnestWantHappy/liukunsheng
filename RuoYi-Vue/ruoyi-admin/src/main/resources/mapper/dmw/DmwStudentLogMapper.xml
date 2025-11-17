@@ -40,16 +40,4 @@
         where student_id = #{studentId}
         order by create_time desc, log_id desc
     </select>
-    <select id="selectStudentLogById" parameterType="Long" resultMap="DmwStudentLogResult">
-        select log_id, student_id, change_field, previous_value, current_value, create_by, create_time
-        from dmw_student_log
-        where log_id = #{logId}
-    </select>
-
-    <update id="updateStudentLogTime">
-        UPDATE dmw_student_log
-        SET create_time = #{createTime}
-        WHERE log_id = #{logId}
-    </update>
-
 </mapper>

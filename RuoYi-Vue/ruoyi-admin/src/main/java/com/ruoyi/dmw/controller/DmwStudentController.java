@@ -8,13 +8,12 @@ import com.ruoyi.common.core.domain.entity.SysDictData;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.DictUtils;
-import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.dmw.domain.DmwInterview;
 import com.ruoyi.dmw.domain.DmwStatusLog;
 import com.ruoyi.dmw.domain.DmwStudent;
+import com.ruoyi.dmw.domain.vo.AttachmentInfo;
 import com.ruoyi.dmw.service.IDmwInterviewService;
-import com.ruoyi.dmw.service.IDmwStudentLogService;
 import com.ruoyi.dmw.service.IDmwStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,9 +48,6 @@ public class DmwStudentController extends BaseController
 
     @Autowired
     private IDmwInterviewService dmwInterviewService;
-
-    @Autowired
-    private IDmwStudentLogService dmwStudentLogService;
 
     /**
      * 查询六困生-学生信息列表
@@ -98,17 +94,14 @@ public class DmwStudentController extends BaseController
         return success(dmwStudentService.getStudentLogs(studentId));
     }
 
-    @PreAuthorize("@ss.hasPermi('dmw:student:edit')")
-    @PutMapping("/logs/{logId}/time")
-    public AjaxResult updateLogTime(@PathVariable Long logId, @RequestBody Map<String, String> request)
+    /**
+     * 获取学生全量时间线
+     */
+    @PreAuthorize("@ss.hasPermi('dmw:student:query')")
+    @GetMapping("/{studentId}/timeline")
+    public AjaxResult getStudentTimeline(@PathVariable("studentId") Long studentId)
     {
-        String createTimeStr = request.get("createTime");
-        Date operateTime = DateUtils.parseDate(createTimeStr);
-        if (operateTime == null)
-        {
-            return AjaxResult.error("操作时间格式不正确");
-        }
-        return toAjax(dmwStudentLogService.updateStudentLogTime(logId, operateTime));
+        return success(dmwStudentService.getStudentTimeline(studentId));
     }
 
     /**
@@ -233,31 +226,31 @@ public class DmwStudentController extends BaseController
 
         // 6. 遍历约谈记录，将附件写入ZIP
         for (DmwInterview interview : interviews) {
-            if (StringUtils.hasText(interview.getAttachmentUrl())) {
-                String attachmentUrl = interview.getAttachmentUrl();
-                String path = attachmentUrl.substring(attachmentUrl.indexOf("/profile"));
-                String filePath = RuoYiConfig.getProfile() + path.replace("/profile", "");
-
-                File attachmentFile = new File(filePath);
-                if (attachmentFile.exists()) {
-                    String originalFileName = attachmentUrl.substring(attachmentUrl.lastIndexOf("/") + 1);
-                    String fileExtension = "";
-                    int i = originalFileName.lastIndexOf('.');
-                    if (i > 0) {
-                        fileExtension = originalFileName.substring(i);
-                    }
-                    String zipEntryName = "约谈附件/" + "约谈附件_" + sdf.format(interview.getInterviewTime()) + "_" + interview.getInterviewId() + fileExtension;
-
-                    zos.putNextEntry(new ZipEntry(zipEntryName));
-                    try (FileInputStream fis = new FileInputStream(attachmentFile)) {
-                        byte[] buffer = new byte[1024];
-                        int len;
-                        while ((len = fis.read(buffer)) > 0) {
-                            zos.write(buffer, 0, len);
-                        }
-                    }
-                    zos.closeEntry();
+            List<AttachmentInfo> attachments = AttachmentInfo.parseList(interview.getAttachmentUrl());
+            if (attachments.isEmpty()) {
+                continue;
+            }
+            int index = 1;
+            for (AttachmentInfo attachment : attachments) {
+                File attachmentFile = resolveProfileFile(attachment.getUrl());
+                if (attachmentFile == null || !attachmentFile.exists()) {
+                    index++;
+                    continue;
                 }
+                String defaultName = "约谈附件_" + sdf.format(interview.getInterviewTime()) + "_" + interview.getInterviewId() + "_" + index;
+                String safeName = attachment.buildSafeName(defaultName);
+                String zipEntryName = "约谈附件/" + safeName;
+
+                zos.putNextEntry(new ZipEntry(zipEntryName));
+                try (FileInputStream fis = new FileInputStream(attachmentFile)) {
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = fis.read(buffer)) > 0) {
+                        zos.write(buffer, 0, len);
+                    }
+                }
+                zos.closeEntry();
+                index++;
             }
         }
         zos.close();
@@ -280,6 +273,16 @@ public class DmwStudentController extends BaseController
             return new java.util.HashMap<>();
         }
         return dictData.stream().collect(Collectors.toMap(SysDictData::getDictValue, SysDictData::getDictLabel, (v1, v2) -> v1));
+    }
+
+    private File resolveProfileFile(String fileUrl) {
+        if (!StringUtils.hasText(fileUrl)) {
+            return null;
+        }
+        final String marker = "/profile";
+        int idx = fileUrl.indexOf(marker);
+        String relative = idx >= 0 ? fileUrl.substring(idx + marker.length()) : fileUrl;
+        return new File(RuoYiConfig.getProfile() + relative);
     }
 
     /**

@@ -8,4 +8,11 @@
         values (#{studentId}, #{studentName}, #{previousStatus}, #{currentStatus}, #{reason}, #{startDate}, #{endDate}, #{attachmentUrl}, #{createBy}, sysdate())
     </insert>
 
+    <select id="selectLogsByStudentId" parameterType="Long" resultType="com.ruoyi.dmw.domain.DmwStatusLog">
+        select log_id, student_id, student_name, previous_status, current_status, reason, start_date, end_date, attachment_url, create_by, create_time
+        from dmw_status_log
+        where student_id = #{studentId}
+        order by create_time desc, log_id desc
+    </select>
+
 </mapper>
