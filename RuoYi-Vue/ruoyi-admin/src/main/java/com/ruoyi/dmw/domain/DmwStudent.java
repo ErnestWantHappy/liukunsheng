@@ -112,6 +112,10 @@ public class DmwStudent extends BaseEntity
     @Excel(name = "最近一次记录时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date lastRecordTime;
 
+    /** 学生照片 */
+    @Excel(name = "学生照片")
+    private String photoUrl;
+
     /** 删除标志 (0=存在 2=删除) */
     private String delFlag;
 
@@ -326,6 +330,16 @@ public class DmwStudent extends BaseEntity
         return teacherReportInfo;
     }
 
+    public String getPhotoUrl()
+    {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl)
+    {
+        this.photoUrl = photoUrl;
+    }
+
     public void setStudentStatus(String studentStatus)
     {
         this.studentStatus = studentStatus;
@@ -389,6 +403,7 @@ public class DmwStudent extends BaseEntity
                 .append("studentDetails", getStudentDetails())
                 .append("countermeasures", getCountermeasures())
                 .append("teacherReportInfo", getTeacherReportInfo())
+                .append("photoUrl", getPhotoUrl())
                 .append("studentStatus", getStudentStatus())
                 .append("currentStatusReason", getCurrentStatusReason()) // <-- 已添加
                 .append("reportStatus", getReportStatus())

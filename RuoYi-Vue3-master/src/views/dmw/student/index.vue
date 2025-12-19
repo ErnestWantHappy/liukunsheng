@@ -160,7 +160,7 @@
               <el-form-item label="年级" prop="gradeId">
                 <el-select v-model="form.gradeId" placeholder="请选择年级" style="width:100%">
                   <el-option
-                    v-for="item in gradeOptions"
+                    v-for="item in filteredGradeOptions"
                     :key="item.value"
                     :label="item.label"
                     :value="item.value"
@@ -216,6 +216,13 @@
                   :label="dict.value"
                 >{{dict.label}}</el-radio>
               </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="学生照片">
+              <ImageUpload v-model="form.photoUrl" :limit="1" :file-size="5" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -379,11 +386,12 @@
 </template>
 
 <script setup name="Student">
-import { h, ref, reactive, computed, toRefs, getCurrentInstance } from "vue";
+import { h, ref, reactive, computed, toRefs, getCurrentInstance, watch } from "vue";
 import { listStudent, getStudent, delStudent, addStudent, updateStudent, downloadProfile, changeStudentStatus, upgradeAllStudents } from "@/api/dmw/student";
 import { getMyClasses } from "@/api/dmw/teach";
 import { getToken } from "@/utils/auth";
 import useUserStore from '@/store/modules/user';
+import ImageUpload from "@/components/ImageUpload";
 import InterviewForm from "../interview/form.vue";
 import StatusChangeDialog from "./StatusChangeDialog.vue";
 import HistoryTrajectoryDialog from "./HistoryTrajectoryDialog.vue";
@@ -392,6 +400,7 @@ const { proxy } = getCurrentInstance();
 const userStore = useUserStore();
 const HEAD_TEACHER_ROLE_KEY = "headteacher";
 const CAN_UPGRADE_ROLES = ["admin", "psychologist"];
+const PSYCHOLOGIST_ROLE_KEY = "psychologist";
 
 // 字典
 const { 
@@ -440,6 +449,18 @@ const gradeOptions = ref(
     return { value: grade, label: `${gradeMap[i]}年级` };
   })
 );
+const filteredGradeOptions = computed(() => {
+  if (!isPsychologist.value) {
+    return gradeOptions.value;
+  }
+  if (form.value.deptType === '1') {
+    return gradeOptions.value.filter(item => item.value >= 1 && item.value <= 6);
+  }
+  if (form.value.deptType === '2') {
+    return gradeOptions.value.filter(item => item.value >= 7 && item.value <= 9);
+  }
+  return gradeOptions.value;
+});
 const classOptions = ref(
   Array.from({ length: 12 }, (_, i) => ({
     value: i + 1,
@@ -453,6 +474,7 @@ const historyDialogRef = ref(null);
 const isHeadTeacher = computed(() => userStore.roles.includes(HEAD_TEACHER_ROLE_KEY));
 
 const canUpgradeAll = computed(() => userStore.roles.some(role => CAN_UPGRADE_ROLES.includes(role)));
+const isPsychologist = computed(() => userStore.roles.includes(PSYCHOLOGIST_ROLE_KEY));
 
 /*** 用户导入参数 */
 const upload = reactive({
@@ -545,6 +567,21 @@ function handleTeacherClassChange(selectedId) {
   }
 }
 
+watch(() => form.value.deptType, (val) => {
+  if (!isPsychologist.value) return;
+  if (val === '1' && form.value.gradeId && form.value.gradeId > 6) {
+    form.value.gradeId = null;
+  }
+  if (val === '2' && form.value.gradeId && form.value.gradeId < 7) {
+    form.value.gradeId = null;
+  }
+});
+
+watch(() => form.value.gradeId, (val) => {
+  if (!isPsychologist.value || !val) return;
+  form.value.deptType = val <= 6 ? '1' : '2';
+});
+
 /** 根据学部代码获取名称 */
 function getDeptTypeName(deptType) {
   if (!deptType || !dmw_dept_type.value) return '';
@@ -581,6 +618,7 @@ function reset() {
     studentDetails: null,
     countermeasures: null,
     teacherReportInfo: null,
+    photoUrl: null,
   };
   teacherClassSelection.value = null;
   proxy.resetForm("studentRef");

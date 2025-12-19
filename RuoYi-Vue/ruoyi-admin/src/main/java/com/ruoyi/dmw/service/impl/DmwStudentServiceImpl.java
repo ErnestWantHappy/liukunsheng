@@ -74,6 +74,7 @@ public class DmwStudentServiceImpl implements IDmwStudentService
         registerField("student_details", "学生详细情况", null, DmwStudent::getStudentDetails);
         registerField("countermeasures", "应对措施", null, DmwStudent::getCountermeasures);
         registerField("teacher_report_info", "教师上报信息", null, DmwStudent::getTeacherReportInfo);
+        registerField("photo_url", "学生照片", null, DmwStudent::getPhotoUrl);
         registerField("student_status", "学生状态", "dmw_student_status", DmwStudent::getStudentStatus);
         registerField("current_status_reason", "状态原因", null, DmwStudent::getCurrentStatusReason);
         registerField("report_status", "上报状态", "dmw_report_status", DmwStudent::getReportStatus);

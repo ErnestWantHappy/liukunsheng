@@ -3,7 +3,7 @@
     <el-row :gutter="20">
       <splitpanes :horizontal="appStore.device === 'mobile'" class="default-theme">
         <!--部门数据-->
-        <pane size="16">
+        <pane v-if="!isPsychologist" size="16">
           <el-col>
             <div class="head-container">
               <el-input v-model="deptName" placeholder="请输入部门名称" clearable prefix-icon="Search" style="margin-bottom: 20px" />
@@ -14,21 +14,24 @@
           </el-col>
         </pane>
         <!--用户数据-->
-        <pane size="84">
+        <pane :size="isPsychologist ? 100 : 84">
           <el-col>
             <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-              <el-form-item label="用户名称" prop="userName">
-                <el-input v-model="queryParams.userName" placeholder="请输入用户名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
+              <el-form-item v-if="isPsychologist" label="教师名" prop="nickName">
+                <el-input v-model="queryParams.nickName" placeholder="请输入教师名" clearable style="width: 240px" @keyup.enter="handleQuery" />
+              </el-form-item>
+              <el-form-item v-else label="用户账号" prop="userName">
+                <el-input v-model="queryParams.userName" placeholder="请输入用户账号" clearable style="width: 240px" @keyup.enter="handleQuery" />
               </el-form-item>
               <el-form-item label="手机号码" prop="phonenumber">
                 <el-input v-model="queryParams.phonenumber" placeholder="请输入手机号码" clearable style="width: 240px" @keyup.enter="handleQuery" />
               </el-form-item>
-              <el-form-item label="状态" prop="status">
+              <el-form-item v-if="!isPsychologist" label="状态" prop="status">
                 <el-select v-model="queryParams.status" placeholder="用户状态" clearable style="width: 240px">
                   <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
                 </el-select>
               </el-form-item>
-              <el-form-item label="创建时间" style="width: 308px">
+              <el-form-item v-if="!isPsychologist" label="创建时间" style="width: 308px">
                 <el-date-picker v-model="dateRange" value-format="YYYY-MM-DD" type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
               </el-form-item>
               <el-form-item>
@@ -59,8 +62,8 @@
             <el-table v-loading="loading" :data="userList" @selection-change="handleSelectionChange">
               <el-table-column type="selection" width="50" align="center" />
               <el-table-column label="用户编号" align="center" key="userId" prop="userId" v-if="columns[0].visible" />
-              <el-table-column label="用户名称" align="center" key="userName" prop="userName" v-if="columns[1].visible" :show-overflow-tooltip="true" />
-              <el-table-column label="用户昵称" align="center" key="nickName" prop="nickName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
+              <el-table-column label="用户账号" align="center" key="userName" prop="userName" v-if="columns[1].visible" :show-overflow-tooltip="true" />
+              <el-table-column label="教师名" align="center" key="nickName" prop="nickName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
               <el-table-column label="部门" align="center" key="deptName" prop="dept.deptName" v-if="columns[3].visible" :show-overflow-tooltip="true" />
               <el-table-column label="手机号码" align="center" key="phonenumber" prop="phonenumber" v-if="columns[4].visible" width="120" />
               <el-table-column label="状态" align="center" key="status" v-if="columns[5].visible">
@@ -106,23 +109,23 @@
       <el-form :model="form" :rules="rules" ref="userRef" label-width="80px">
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户昵称" prop="nickName">
-              <el-input v-model="form.nickName" placeholder="请输入用户昵称" maxlength="30" />
+            <el-form-item label="教师名" prop="nickName">
+              <el-input v-model="form.nickName" placeholder="请输入教师名" maxlength="30" />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col v-if="!isPsychologist" :span="12">
             <el-form-item label="归属部门" prop="deptId">
               <el-tree-select v-model="form.deptId" :data="enabledDeptOptions" :props="{ value: 'id', label: 'label', children: 'children' }" value-key="id" placeholder="请选择归属部门" check-strictly />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
-          <el-col :span="12">
+          <el-col :span="isPsychologist ? 24 : 12">
             <el-form-item label="手机号码" prop="phonenumber">
               <el-input v-model="form.phonenumber" placeholder="请输入手机号码" maxlength="11" />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col v-if="!isPsychologist" :span="12">
             <el-form-item label="邮箱" prop="email">
               <el-input v-model="form.email" placeholder="请输入邮箱" maxlength="50" />
             </el-form-item>
@@ -130,8 +133,8 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item v-if="form.userId == undefined" label="用户名称" prop="userName">
-              <el-input v-model="form.userName" placeholder="请输入用户名称" maxlength="30" />
+            <el-form-item v-if="form.userId == undefined" label="用户账号" prop="userName">
+              <el-input v-model="form.userName" placeholder="请输入用户账号" maxlength="30" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -140,7 +143,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row>
+        <el-row v-if="!isPsychologist">
           <el-col :span="12">
             <el-form-item label="用户性别">
               <el-select v-model="form.sex" placeholder="请选择">
@@ -157,22 +160,22 @@
           </el-col>
         </el-row>
         <el-row>
-          <el-col :span="12">
+          <el-col v-if="!isPsychologist" :span="12">
             <el-form-item label="岗位">
               <el-select v-model="form.postIds" multiple placeholder="请选择">
                 <el-option v-for="item in postOptions" :key="item.postId" :label="item.postName" :value="item.postId" :disabled="item.status == 1"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="isPsychologist ? 24 : 12">
             <el-form-item label="角色">
-              <el-select v-model="form.roleIds" multiple placeholder="请选择">
-                <el-option v-for="item in roleOptions" :key="item.roleId" :label="item.roleName" :value="item.roleId" :disabled="item.status == 1"></el-option>
+              <el-select v-model="form.roleIds" multiple placeholder="请选择角色" :multiple-limit="isPsychologist ? 1 : 0" collapse-tags collapse-tags-tooltip>
+                <el-option v-for="item in displayedRoleOptions" :key="item.roleId" :label="item.roleName" :value="item.roleId" :disabled="item.status == 1"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row>
+        <el-row v-if="!isPsychologist">
           <el-col :span="24">
             <el-form-item label="备注">
               <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"></el-input>
@@ -199,6 +202,7 @@
               <el-checkbox v-model="upload.updateSupport" />是否更新已经存在的用户数据
             </div>
             <span>仅允许导入xls、xlsx格式文件。</span>
+            <div>必填字段：教师名、用户账号、用户密码、角色、手机号码。</div>
             <el-link type="primary" :underline="false" style="font-size: 12px; vertical-align: baseline" @click="importTemplate">下载模板</el-link>
           </div>
         </template>
@@ -216,6 +220,7 @@
 <script setup name="User">
 import { getToken } from "@/utils/auth"
 import useAppStore from '@/store/modules/app'
+import useUserStore from '@/store/modules/user'
 import { changeUserStatus, listUser, resetUserPwd, delUser, getUser, updateUser, addUser, deptTreeSelect } from "@/api/system/user"
 import { Splitpanes, Pane } from "splitpanes"
 import "splitpanes/dist/splitpanes.css"
@@ -223,7 +228,11 @@ import "splitpanes/dist/splitpanes.css"
 const router = useRouter()
 const appStore = useAppStore()
 const { proxy } = getCurrentInstance()
+const userStore = useUserStore()
 const { sys_normal_disable, sys_user_sex } = proxy.useDict("sys_normal_disable", "sys_user_sex")
+const HEAD_TEACHER_ROLE_KEY = "headteacher"
+const PSYCHOLOGIST_ROLE_KEY = "psychologist"
+const LIMITED_ROLE_KEYS = [HEAD_TEACHER_ROLE_KEY, PSYCHOLOGIST_ROLE_KEY]
 
 const userList = ref([])
 const open = ref(false)
@@ -241,6 +250,13 @@ const enabledDeptOptions = ref(undefined)
 const initPassword = ref(undefined)
 const postOptions = ref([])
 const roleOptions = ref([])
+const isPsychologist = computed(() => userStore.roles.includes(PSYCHOLOGIST_ROLE_KEY))
+const displayedRoleOptions = computed(() => {
+  if (!isPsychologist.value) {
+    return roleOptions.value
+  }
+  return roleOptions.value.filter(item => LIMITED_ROLE_KEYS.includes(item.roleKey))
+})
 /*** 用户导入参数 */
 const upload = reactive({
   // 是否显示弹出层（用户导入）
@@ -259,8 +275,8 @@ const upload = reactive({
 // 列显隐信息
 const columns = ref([
   { key: 0, label: `用户编号`, visible: true },
-  { key: 1, label: `用户名称`, visible: true },
-  { key: 2, label: `用户昵称`, visible: true },
+  { key: 1, label: `用户账号`, visible: true },
+  { key: 2, label: `教师名`, visible: true },
   { key: 3, label: `部门`, visible: true },
   { key: 4, label: `手机号码`, visible: true },
   { key: 5, label: `状态`, visible: true },
@@ -272,21 +288,30 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
+    nickName: undefined,
     userName: undefined,
     phonenumber: undefined,
     status: undefined,
     deptId: undefined
   },
   rules: {
-    userName: [{ required: true, message: "用户名称不能为空", trigger: "blur" }, { min: 2, max: 20, message: "用户名称长度必须介于 2 和 20 之间", trigger: "blur" }],
-    nickName: [{ required: true, message: "用户昵称不能为空", trigger: "blur" }],
+    userName: [{ required: true, message: "用户账号不能为空", trigger: "blur" }, { min: 2, max: 20, message: "用户账号长度必须介于 2 和 20 之间", trigger: "blur" }],
+    nickName: [{ required: true, message: "教师名不能为空", trigger: "blur" }],
     password: [{ required: true, message: "用户密码不能为空", trigger: "blur" }, { min: 5, max: 20, message: "用户密码长度必须介于 5 和 20 之间", trigger: "blur" }, { pattern: /^[^<>"'|\\]+$/, message: "不能包含非法字符：< > \" ' \\\ |", trigger: "blur" }],
     email: [{ type: "email", message: "请输入正确的邮箱地址", trigger: ["blur", "change"] }],
-    phonenumber: [{ pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/, message: "请输入正确的手机号码", trigger: "blur" }]
+    phonenumber: [{ required: true, message: "手机号码不能为空", trigger: "blur" }, { pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/, message: "请输入正确的手机号码", trigger: "blur" }],
+    roleIds: [{ required: true, type: "array", message: "角色不能为空", trigger: "change" }]
   }
 })
 
 const { queryParams, form, rules } = toRefs(data)
+
+watch([isPsychologist, displayedRoleOptions], () => {
+  if (!isPsychologist.value) return
+  const allowedIds = displayedRoleOptions.value.map(item => item.roleId)
+  const currentRoles = Array.isArray(form.value.roleIds) ? form.value.roleIds : (form.value.roleIds ? [form.value.roleIds] : [])
+  form.value.roleIds = currentRoles.filter(id => allowedIds.includes(id))
+})
 
 /** 通过条件过滤节点  */
 const filterNode = (value, data) => {
@@ -296,7 +321,18 @@ const filterNode = (value, data) => {
 
 /** 根据名称筛选部门树 */
 watch(deptName, val => {
-  proxy.$refs["deptTreeRef"].filter(val)
+  if (proxy.$refs["deptTreeRef"]) {
+    proxy.$refs["deptTreeRef"].filter(val)
+  }
+})
+
+watch(isPsychologist, (val) => {
+  if (!val && deptOptions.value === undefined) {
+    getDeptTree()
+  }
+  if (val) {
+    queryParams.value.deptId = undefined
+  }
 })
 
 /** 查询用户列表 */
@@ -339,6 +375,10 @@ function handleNodeClick(data) {
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.pageNum = 1
+  if (isPsychologist.value) {
+    queryParams.value.deptId = undefined
+    queryParams.value.status = undefined
+  }
   getList()
 }
 
@@ -347,7 +387,9 @@ function resetQuery() {
   dateRange.value = []
   proxy.resetForm("queryRef")
   queryParams.value.deptId = undefined
-  proxy.$refs.deptTreeRef.setCurrentKey(null)
+  if (proxy.$refs.deptTreeRef) {
+    proxy.$refs.deptTreeRef.setCurrentKey(null)
+  }
   handleQuery()
 }
 
@@ -508,7 +550,7 @@ function handleUpdate(row) {
     form.value.roleIds = response.roleIds
     open.value = true
     title.value = "修改用户"
-    form.password = ""
+    form.value.password = ""
   })
 }
 
@@ -534,7 +576,11 @@ function submitForm() {
 }
 
 onMounted(() => {
-  getDeptTree()
+  if (!isPsychologist.value) {
+    getDeptTree()
+  } else {
+    queryParams.value.deptId = undefined
+  }
   getList()
   proxy.getConfigKey("sys.user.initPassword").then(response => {
     initPassword.value = response.msg

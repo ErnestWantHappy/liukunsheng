@@ -26,19 +26,19 @@ public class SysUser extends BaseEntity
     private Long userId;
 
     /** 部门ID */
-    @Excel(name = "部门编号", type = Type.IMPORT)
+    @Excel(name = "部门编号", type = Type.EXPORT)
     private Long deptId;
 
     /** 用户账号 */
-    @Excel(name = "登录名称")
+    @Excel(name = "用户账号")
     private String userName;
 
     /** 用户昵称 */
-    @Excel(name = "用户名称")
+    @Excel(name = "教师名")
     private String nickName;
 
     /** 用户邮箱 */
-    @Excel(name = "用户邮箱")
+    @Excel(name = "用户邮箱", type = Type.EXPORT)
     private String email;
 
     /** 手机号码 */
@@ -46,17 +46,18 @@ public class SysUser extends BaseEntity
     private String phonenumber;
 
     /** 用户性别 */
-    @Excel(name = "用户性别", readConverterExp = "0=男,1=女,2=未知")
+    @Excel(name = "用户性别", readConverterExp = "0=男,1=女,2=未知", type = Type.EXPORT)
     private String sex;
 
     /** 用户头像 */
     private String avatar;
 
     /** 密码 */
+    @Excel(name = "用户密码", type = Type.IMPORT)
     private String password;
 
     /** 账号状态（0正常 1停用） */
-    @Excel(name = "账号状态", readConverterExp = "0=正常,1=停用")
+    @Excel(name = "账号状态", readConverterExp = "0=正常,1=停用", type = Type.EXPORT)
     private String status;
 
     /** 删除标志（0代表存在 2代表删除） */
@@ -91,6 +92,10 @@ public class SysUser extends BaseEntity
 
     /** 角色ID */
     private Long roleId;
+
+    /** 角色标识 */
+    @Excel(name = "角色标识", prompt = "必填：headteacher(班主任) 或 psychologist(心理管理员)", type = Type.IMPORT)
+    private String roleKey;
 
     public SysUser()
     {
@@ -308,6 +313,16 @@ public class SysUser extends BaseEntity
     public void setRoleId(Long roleId)
     {
         this.roleId = roleId;
+    }
+
+    public String getRoleKey()
+    {
+        return roleKey;
+    }
+
+    public void setRoleKey(String roleKey)
+    {
+        this.roleKey = roleKey;
     }
 
     @Override

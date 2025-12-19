@@ -1,7 +1,9 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.Validator;
 import org.slf4j.Logger;
@@ -40,6 +42,7 @@ import com.ruoyi.system.service.ISysUserService;
 public class SysUserServiceImpl implements ISysUserService
 {
     private static final Logger log = LoggerFactory.getLogger(SysUserServiceImpl.class);
+    private static final Set<String> ALLOWED_IMPORT_ROLE_KEYS = Arrays.stream(new String[] { "headteacher", "psychologist" }).collect(Collectors.toSet());
 
     @Autowired
     private SysUserMapper userMapper;
@@ -497,14 +500,43 @@ public class SysUserServiceImpl implements ISysUserService
         {
             try
             {
+                if (StringUtils.isBlank(user.getNickName()))
+                {
+                    throw new ServiceException("教师名不能为空");
+                }
+                if (StringUtils.isBlank(user.getPhonenumber()))
+                {
+                    throw new ServiceException("手机号码不能为空");
+                }
+                if (StringUtils.isBlank(user.getUserName()))
+                {
+                    throw new ServiceException("用户账号不能为空");
+                }
+                if (StringUtils.isBlank(user.getPassword()))
+                {
+                    throw new ServiceException("用户密码不能为空");
+                }
+                if (StringUtils.isBlank(user.getRoleKey()))
+                {
+                    throw new ServiceException("角色标识不能为空");
+                }
+                if (!ALLOWED_IMPORT_ROLE_KEYS.contains(user.getRoleKey()))
+                {
+                    throw new ServiceException("角色标识非法，仅允许：headteacher, psychologist");
+                }
+                SysRole matchedRole = roleMapper.checkRoleKeyUnique(user.getRoleKey());
+                if (StringUtils.isNull(matchedRole) || matchedRole.getRoleId() == null)
+                {
+                    throw new ServiceException("角色标识不存在：" + user.getRoleKey());
+                }
+                user.setRoleIds(new Long[] { matchedRole.getRoleId() });
+                user.setPassword(SecurityUtils.encryptPassword(user.getPassword()));
                 // 验证是否存在这个用户
                 SysUser u = userMapper.selectUserByUserName(user.getUserName());
                 if (StringUtils.isNull(u))
                 {
                     BeanValidators.validateWithException(validator, user);
                     deptService.checkDeptDataScope(user.getDeptId());
-                    String password = configService.selectConfigByKey("sys.user.initPassword");
-                    user.setPassword(SecurityUtils.encryptPassword(password));
                     user.setCreateBy(operName);
                     userMapper.insertUser(user);
                     successNum++;

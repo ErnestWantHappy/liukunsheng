@@ -2,18 +2,13 @@ package com.ruoyi.common.utils.file;
 
 import com.ruoyi.common.config.RuoYiConfig;
 import com.ruoyi.common.utils.StringUtils;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import com.ruoyi.common.utils.spring.SpringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
-import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
+import org.jodconverter.core.DocumentConverter;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * 文档预览工具，负责将可转换的文件转为 PDF
@@ -35,7 +30,7 @@ public class DocumentPreviewUtils {
             return false;
         }
         String ext = extension.toLowerCase();
-        return "docx".equals(ext);
+        return "doc".equals(ext) || "docx".equals(ext);
     }
 
     /**
@@ -43,6 +38,11 @@ public class DocumentPreviewUtils {
      */
     public static String convertToPdf(String relativePath) {
         if (StringUtils.isBlank(relativePath)) {
+            return null;
+        }
+        DocumentConverter converter = getConverter();
+        if (converter == null) {
+            log.warn("未获取到DocumentConverter实例，跳过预览转换");
             return null;
         }
         try {
@@ -59,12 +59,7 @@ public class DocumentPreviewUtils {
             if (parent != null && !parent.exists()) {
                 parent.mkdirs();
             }
-            try (InputStream inputStream = new FileInputStream(inputFile);
-                 OutputStream outputStream = new FileOutputStream(outputFile)) {
-                XWPFDocument document = new XWPFDocument(inputStream);
-                PdfOptions options = PdfOptions.create();
-                PdfConverter.getInstance().convert(document, outputStream, options);
-            }
+            converter.convert(inputFile).to(outputFile).execute();
             return pdfRelative;
         } catch (Exception e) {
             log.error("文档转PDF失败，path={}", relativePath, e);
@@ -89,5 +84,14 @@ public class DocumentPreviewUtils {
         int dotIndex = cleanPath.lastIndexOf('.');
         String prefix = dotIndex > 0 ? cleanPath.substring(0, dotIndex) : cleanPath;
         return prefix + "_preview.pdf";
+    }
+
+    private static DocumentConverter getConverter() {
+        try {
+            return SpringUtils.getBean(DocumentConverter.class);
+        } catch (Exception ex) {
+            log.error("获取DocumentConverter失败，无法进行文档预览转换", ex);
+            return null;
+        }
     }
 }

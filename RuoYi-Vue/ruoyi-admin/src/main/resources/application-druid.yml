@@ -59,3 +59,10 @@ spring:
                 wall:
                     config:
                         multi-statement-allow: true
+jodconverter:
+    local:
+        enabled: true
+        # Windows下通常可自动识别安装路径，如有需要请显式指定
+        office-home: C:\Program Files\LibreOffice
+        port-numbers: 8100
+        max-tasks-per-process: 10
